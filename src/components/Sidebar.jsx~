@@ -1,0 +1,87 @@
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+    LayoutDashboard,
+    Users,
+    Wallet,
+    Receipt,
+    Settings,
+    UserCircle,
+    LogOut,
+    Menu
+} from 'lucide-react';
+
+const Sidebar = () => {
+    const location = useLocation();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const isActive = (path) => {
+        return location.pathname === path;
+    };
+
+    const NavLink = ({ to, icon: Icon, children }) => {
+        const active = isActive(to);
+        return (
+            <Link
+                to={to}
+                className={`flex items-center px-4 py-3 rounded-full transition-all duration-200 group
+                    ${active
+                    ? 'bg-white text-black'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                }`}
+            >
+                <Icon
+                    className={`w-5 h-5 mr-3 
+                        ${active
+                        ? 'text-black'
+                        : 'text-gray-400 group-hover:text-blue-400'
+                    }`}
+                />
+                <span className={`font-medium ${!isOpen && 'hidden'} md:block`}>{children}</span>
+            </Link>
+        );
+    };
+
+    const toggleSidebar = () => {
+        setIsOpen(!isOpen);
+    };
+
+    return (
+        <>
+            {/* Bouton de menu pour petits écrans */}
+            <button className="md:hidden p-4" onClick={toggleSidebar}>
+                <Menu className="text-white" />
+            </button>
+
+            <div className={`fixed h-full bg-black text-gray-300 flex flex-col shadow-xl transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-16'} md:w-64`}>
+                {/* Entête */}
+                <div className="p-6 border-b border-gray-800">
+                    <h1 className={`text-2xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent ${!isOpen && 'hidden'} md:block`}>
+                        AENATVola
+                    </h1>
+                    {!isOpen && <Menu className="text-white md:hidden" />}
+                </div>
+
+                {/* Éléments de Navigation */}
+                <nav className="flex flex-col flex-grow space-y-1 p-4">
+                    <NavLink to="/" icon={LayoutDashboard}>Dashboard</NavLink>
+                    <NavLink to="/membres" icon={Users}>Membres</NavLink>
+                    <NavLink to="/compte" icon={Wallet}>Compte</NavLink>
+                    <NavLink to="/depense" icon={Receipt}>Dépense</NavLink>
+                    <NavLink to="/parametre" icon={Settings}>Paramètre</NavLink>
+                    <NavLink to="/profil" icon={UserCircle}>Profil</NavLink>
+                </nav>
+
+                {/* Bouton de Déconnexion */}
+                <div className="p-4 border-t border-gray-800">
+                    <button className="flex items-center justify-center w-full px-4 py-3 text-gray-300 bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors duration-200 group">
+                        <LogOut className="w-5 h-5 mr-3 text-gray-400 group-hover:text-blue-400" />
+                        <span className={`font-medium ${!isOpen && 'hidden'} md:block`}>Déconnexion</span>
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default Sidebar;
