@@ -1,0 +1,50 @@
+[
+  {
+    "id_budget": 1,
+    "montant": 500000,
+    "type_budget": "Revenu",
+    "date_budget": "2025-02-15",
+    "description_budget": "Cotisation mensuelle",
+    "id_membre": 3
+  },
+  {
+    "id_budget": 2,
+    "montant": -100000,
+    "type_budget": "Dépense",
+    "date_budget": "2025-02-16",
+    "description_budget": "Achat de fournitures",
+    "id_membre": 5
+  },
+  {
+    "id_budget": 3,
+    "montant": 200000,
+    "type_budget": "Revenu",
+    "date_budget": "2025-02-17",
+    "description_budget": "Dons externes",
+    "id_membre": 8
+  },
+  {
+    "id_budget": 4,
+    "montant": -50000,
+    "type_budget": "Dépense",
+    "date_budget": "2025-02-18",
+    "description_budget": "Transport événement",
+    "id_membre": 2
+  },
+  {
+    "id_budget": 5,
+    "montant": 150000,
+    "type_budget": "Revenu",
+    "date_budget": "2025-02-19",
+    "description_budget": "Vente de produits",
+    "id_membre": 4
+  },
+  {
+    "id_budget": 6,
+    "montant": -250000,
+    "type_budget": "Dépense",
+    "date_budget": "2025-02-20",
+    "description_budget": "Location salle de réunion",
+    "id_membre": 1
+  }
+]

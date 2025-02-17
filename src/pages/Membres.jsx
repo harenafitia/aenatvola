@@ -7,7 +7,7 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { Pencil, Plus, Menu, Phone, MapPin, School, Book, User } from "lucide-react";
+import {Pencil, Plus, Phone, MapPin, School, Book, User, ChevronDown} from "lucide-react";
 
 const Membres = () => {
     const [data, setData] = useState([]);
@@ -87,7 +87,7 @@ const Membres = () => {
                             className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
                             onClick={() => setShowMobileMenu(!showMobileMenu)}
                         >
-                            <Menu className="w-6 h-6" />
+                            <ChevronDown className="w-6 h-6" />
                         </button>
                     </div>
 

@@ -1,0 +1,50 @@
+[
+  {
+    "id_depense": 1,
+    "titre_depense": "Achat fournitures de bureau",
+    "qte_depense": 10,
+    "prix_unitaire_depense": 5000,
+    "date_depense": "2025-02-15",
+    "heure_depense": "10:30"
+  },
+  {
+    "id_depense": 2,
+    "titre_depense": "Rafraîchissements pour réunion",
+    "qte_depense": 3,
+    "prix_unitaire_depense": 15000,
+    "date_depense": "2025-02-16",
+    "heure_depense": "15:00"
+  },
+  {
+    "id_depense": 3,
+    "titre_depense": "Location salle de conférence",
+    "qte_depense": 1,
+    "prix_unitaire_depense": 200000,
+    "date_depense": "2025-02-17",
+    "heure_depense": "09:00"
+  },
+  {
+    "id_depense": 4,
+    "titre_depense": "Transport pour mission",
+    "qte_depense": 2,
+    "prix_unitaire_depense": 30000,
+    "date_depense": "2025-02-18",
+    "heure_depense": "08:45"
+  },
+  {
+    "id_depense": 5,
+    "titre_depense": "Impression de documents",
+    "qte_depense": 5,
+    "prix_unitaire_depense": 4000,
+    "date_depense": "2025-02-19",
+    "heure_depense": "11:20"
+  },
+  {
+    "id_depense": 6,
+    "titre_depense": "Achat matériel informatique",
+    "qte_depense": 1,
+    "prix_unitaire_depense": 350000,
+    "date_depense": "2025-02-20",
+    "heure_depense": "14:00"
+  }
+]
