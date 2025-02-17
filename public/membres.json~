@@ -1,0 +1,22 @@
+[
+  {
+    "id_membre": 1,
+    "nom_prenom_membre": "John Doe",
+    "com_origin": "Fianarantsoa",
+    "adresse_membre": "Lot II A 45",
+    "tel_membre": "+261341234567",
+    "id_prom": 2,
+    "id_mention": 1,
+    "id_parcours": 3
+  },
+  {
+    "id_membre": 2,
+    "nom_prenom_membre": "Jane Smith",
+    "com_origin": "Antananarivo",
+    "adresse_membre": "Lot III B 12",
+    "tel_membre": "+261341234568",
+    "id_prom": 3,
+    "id_mention": 2,
+    "id_parcours": 1
+  }
+]

@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import {BrowserRouter as Router, Route, Routes, useLocation} from 'react-router-dom';
 import Dashboard from './pages/Dashboard.jsx';
 import Membres from './pages/Membres.jsx';
 import Compte from './pages/Comptes.jsx';
@@ -7,25 +8,45 @@ import Parametre from './pages/Parametre.jsx';
 import Profil from './pages/Profil.jsx';
 import Login from './pages/Login.jsx';
 import Sidebar from './components/Sidebar.jsx';
+import Navbar from './components/Navbar.jsx';
+
+const user = {
+    name: "John Doe",
+    image: "https://via.placeholder.com/150"
+};
+
 
 const App = () => {
+    const location = useLocation();
+    const titles = {
+        "/": "Dashboard",
+        "/membres": "Membres",
+        "/compte": "Compte",
+        "/depense": "Dépense",
+        "/parametre": "Paramètre",
+        "/profil": "Profil",
+        "/login": "Login"
+    };
+    const title = titles[location.pathname] || "AENATVola";
+
     return (
-        <Router>
-            <div className="flex">
-                <Sidebar />
-                <div className="ml-16 md:ml-64 w-full p-4">
+        <div className="flex">
+            <Sidebar/>
+            <div className="ml-16 md:ml-64 w-full">
+                <Navbar title={title} user={user}/>
+                <div className="p-4">
                     <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/membres" element={<Membres />} />
-                        <Route path="/compte" element={<Compte />} />
-                        <Route path="/depense" element={<Depense />} />
-                        <Route path="/parametre" element={<Parametre />} />
-                        <Route path="/profil" element={<Profil />} />
-                        <Route path="/login" element={<Login />} />
+                        <Route path="/" element={<Dashboard/>}/>
+                        <Route path="/membres" element={<Membres/>}/>
+                        <Route path="/compte" element={<Compte/>}/>
+                        <Route path="/depense" element={<Depense/>}/>
+                        <Route path="/parametre" element={<Parametre/>}/>
+                        <Route path="/profil" element={<Profil/>}/>
+                        <Route path="/login" element={<Login/>}/>
                     </Routes>
                 </div>
             </div>
-        </Router>
+        </div>
     );
 };
 
