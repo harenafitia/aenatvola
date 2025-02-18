@@ -15,7 +15,7 @@ const Membres = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        fetch('/membres.json')
+        fetch('/JSON/membres.json')
             .then((response) => response.json())
             .then((data) => setData(data))
             .catch((error) => console.error('Error fetching data:', error));

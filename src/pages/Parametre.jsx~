@@ -31,7 +31,7 @@ const Parametre = () => {
             .catch(error => console.error('Erreur lors du chargement des années:', error));
 
         // Charger et trier les promotions
-        fetch('/JSON/promotions.json')
+        fetch('/promotions.json')
             .then(response => response.json())
             .then(data => {
                 const sortedData = data.sort((a, b) => b.annee_prom.localeCompare(a.annee_prom));

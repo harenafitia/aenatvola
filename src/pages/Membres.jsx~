@@ -7,73 +7,29 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import {
-    Pencil,
-    Plus,
-    Calendar,
-    Clock,
-    ShoppingCart,
-    DollarSign,
-    Package,
-    ChevronDown,
-    Receipt
-} from "lucide-react";
+import {Pencil, Plus, Phone, MapPin, School, Book, User, ChevronDown, Download} from "lucide-react";
 
-const Depense = () => {
+const Membres = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        fetch('/depense.json')
+        fetch('/membres.json')
             .then((response) => response.json())
             .then((data) => setData(data))
             .catch((error) => console.error('Error fetching data:', error));
     }, []);
 
     const columns = useMemo(() => [
-        { header: 'ID', accessorKey: 'id_depense' },
-        { header: 'Titre', accessorKey: 'titre_depense' },
-        {
-            header: 'Quantité',
-            accessorKey: 'qte_depense',
-            cell: info => (
-                <span className="font-medium">
-                    {info.getValue().toLocaleString('fr-FR')} unité(s)
-                </span>
-            )
-        },
-        {
-            header: 'Prix Unitaire',
-            accessorKey: 'prix_unitaire_depense',
-            cell: info => (
-                <span className="text-amber-500">
-                    {info.getValue().toLocaleString('fr-FR')} Ar
-                </span>
-            )
-        },
-        {
-            header: 'Montant Total',
-            cell: info => {
-                const qte = info.row.original.qte_depense;
-                const prix = info.row.original.prix_unitaire_depense;
-                const total = qte * prix;
-                return (
-                    <span className="font-bold text-red-500">
-                        {total.toLocaleString('fr-FR')} Ar
-                    </span>
-                );
-            }
-        },
-        {
-            header: 'Date',
-            accessorKey: 'date_depense',
-            cell: info => new Date(info.getValue()).toLocaleDateString('fr-FR')
-        },
-        {
-            header: 'Heure',
-            accessorKey: 'heure_depense'
-        },
+        { header: 'ID', accessorKey: 'id_membre' },
+        { header: 'Nom et Prénom', accessorKey: 'nom_prenom_membre' },
+        { header: 'Commune d\'origine', accessorKey: 'com_origin' },
+        { header: 'Adresse', accessorKey: 'adresse_membre' },
+        { header: 'Téléphone', accessorKey: 'tel_membre' },
+        { header: 'Promotion', accessorKey: 'id_prom' },
+        { header: 'Mention', accessorKey: 'id_mention' },
+        { header: 'Parcours', accessorKey: 'id_parcours' },
     ], []);
 
     const table = useReactTable({
@@ -88,50 +44,36 @@ const Depense = () => {
     });
 
     // Composant pour la carte mobile
-    const DepenseCard = ({ depense }) => {
-        const montantTotal = depense.qte_depense * depense.prix_unitaire_depense;
-
-        return (
-            <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
-                <div className="flex items-center mb-3">
-                    <ShoppingCart className="w-6 h-6 mr-2 text-blue-400" />
-                    <h3 className="text-lg font-semibold text-white">
-                        {depense.titre_depense}
-                    </h3>
+    const MemberCard = ({ member }) => (
+        <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
+            <div className="flex items-center mb-3">
+                <User className="w-6 h-6 mr-2 text-blue-400" />
+                <h3 className="text-lg font-semibold text-white">
+                    {member.nom_prenom_membre}
+                </h3>
+            </div>
+            <div className="space-y-2">
+                <div className="flex items-center">
+                    <MapPin className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-sm text-gray-300">{member.com_origin} - {member.adresse_membre}</span>
                 </div>
-                <div className="space-y-2">
-                    <div className="flex items-center">
-                        <Package className="w-5 h-5 mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-300">
-                            Quantité: {depense.qte_depense.toLocaleString('fr-FR')} unité(s)
-                        </span>
-                    </div>
-                    <div className="flex items-center">
-                        <DollarSign className="w-5 h-5 mr-2 text-gray-400" />
-                        <span className="text-sm text-amber-500">
-                            Prix unitaire: {depense.prix_unitaire_depense.toLocaleString('fr-FR')} Ar
-                        </span>
-                    </div>
-                    <div className="flex items-center">
-                        <Receipt className="w-5 h-5 mr-2 text-gray-400" />
-                        <span className="text-sm font-bold text-red-500">
-                            Total: {montantTotal.toLocaleString('fr-FR')} Ar
-                        </span>
-                    </div>
-                    <div className="flex items-center">
-                        <Calendar className="w-5 h-5 mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-300">
-                            {new Date(depense.date_depense).toLocaleDateString('fr-FR')}
-                        </span>
-                    </div>
-                    <div className="flex items-center">
-                        <Clock className="w-5 h-5 mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-300">{depense.heure_depense}</span>
-                    </div>
+                <div className="flex items-center">
+                    <Phone className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-sm text-gray-300">{member.tel_membre}</span>
+                </div>
+                <div className="flex items-center">
+                    <School className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-sm text-gray-300">Promotion: {member.id_prom}</span>
+                </div>
+                <div className="flex items-center">
+                    <Book className="w-5 h-5 mr-2 text-gray-400" />
+                    <span className="text-sm text-gray-300">
+                        {member.id_mention} - {member.id_parcours}
+                    </span>
                 </div>
             </div>
-        );
-    };
+        </div>
+    );
 
     return (
         <div className="p-2 sm:p-4">
@@ -140,7 +82,7 @@ const Depense = () => {
                 <div className="space-y-4">
                     {/* Title and Mobile Menu Button */}
                     <div className="flex items-center justify-between">
-                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Dépenses</h1>
+                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Membres</h1>
                         <button
                             className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
                             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -165,13 +107,15 @@ const Depense = () => {
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
+                            <button
+                                className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
                                 <Download className="w-5 h-5 text-white"/>
                                 <span className="ml-2 font-regular text-white">Importer</span>
                             </button>
-                            <button className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
+                            <button
+                                className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
                                 <Plus className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Nouvelle Dépense</span>
+                                <span className="ml-2 font-regular text-white">Ajouter</span>
                             </button>
                         </div>
                     </div>
@@ -183,9 +127,9 @@ const Depense = () => {
                 {/* Mobile Cards View */}
                 <div className="lg:hidden">
                     {table.getRowModel().rows.map((row) => (
-                        <DepenseCard
-                            key={row.original.id_depense}
-                            depense={row.original}
+                        <MemberCard
+                            key={row.original.id_membre}
+                            member={row.original}
                         />
                     ))}
                 </div>
@@ -283,4 +227,4 @@ const Depense = () => {
     );
 };
 
-export default Depense;
+export default Membres;

@@ -25,7 +25,7 @@ const Comptes = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        fetch('/budget.json')
+        fetch('/JSON/budget.json')
             .then((response) => response.json())
             .then((data) => setData(data))
             .catch((error) => console.error('Error fetching data:', error));

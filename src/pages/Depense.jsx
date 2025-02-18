@@ -25,7 +25,7 @@ const Depense = () => {
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        fetch('/depense.json')
+        fetch('/JSON/depense.json')
             .then((response) => response.json())
             .then((data) => setData(data))
             .catch((error) => console.error('Error fetching data:', error));
