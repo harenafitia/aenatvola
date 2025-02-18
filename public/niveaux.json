@@ -1,0 +1,7 @@
+[
+  { "id_niveau": 1, "name_niveau": "Licence 1" },
+  { "id_niveau": 2, "name_niveau": "Licence 2" },
+  { "id_niveau": 3, "name_niveau": "Licence 3" },
+  { "id_niveau": 4, "name_niveau": "Master 1" },
+  { "id_niveau": 5, "name_niveau": "Master 2" }
+]
