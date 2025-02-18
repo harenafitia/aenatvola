@@ -7,7 +7,7 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import {Pencil, Plus, Phone, MapPin, School, Book, User, ChevronDown} from "lucide-react";
+import {Pencil, Plus, Phone, MapPin, School, Book, User, ChevronDown, Download} from "lucide-react";
 
 const Membres = () => {
     const [data, setData] = useState([]);
@@ -107,11 +107,13 @@ const Membres = () => {
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
-                                <Pencil className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Importation</span>
+                            <button
+                                className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
+                                <Download className="w-5 h-5 text-white"/>
+                                <span className="ml-2 font-regular text-white">Importer</span>
                             </button>
-                            <button className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
+                            <button
+                                className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
                                 <Plus className="w-5 h-5 text-white"/>
                                 <span className="ml-2 font-regular text-white">Ajouter</span>
                             </button>

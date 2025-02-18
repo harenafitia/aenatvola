@@ -11,62 +11,69 @@ import {
     Pencil,
     Plus,
     Calendar,
+    Clock,
+    ShoppingCart,
     DollarSign,
-    ClipboardList,
-    User,
+    Package,
     ChevronDown,
-    ArrowUpCircle,
-    ArrowDownCircle, Download
+    Receipt
 } from "lucide-react";
 
-const Comptes = () => {
+const Depense = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
-        fetch('/budget.json')
+        fetch('/depense.json')
             .then((response) => response.json())
             .then((data) => setData(data))
             .catch((error) => console.error('Error fetching data:', error));
     }, []);
 
     const columns = useMemo(() => [
-        { header: 'ID', accessorKey: 'id_budget' },
+        { header: 'ID', accessorKey: 'id_depense' },
+        { header: 'Titre', accessorKey: 'titre_depense' },
         {
-            header: 'Montant',
-            accessorKey: 'montant',
-            cell: info => {
-                const montant = info.getValue();
-                return (
-                    <span className={`flex items-center ${montant >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {montant.toLocaleString('fr-FR')} Ar
-                    </span>
-                );
-            }
+            header: 'Quantité',
+            accessorKey: 'qte_depense',
+            cell: info => (
+                <span className="font-medium">
+                    {info.getValue().toLocaleString('fr-FR')} unité(s)
+                </span>
+            )
         },
         {
-            header: 'Type',
-            accessorKey: 'type_budget',
+            header: 'Prix Unitaire',
+            accessorKey: 'prix_unitaire_depense',
+            cell: info => (
+                <span className="text-amber-500">
+                    {info.getValue().toLocaleString('fr-FR')} Ar
+                </span>
+            )
+        },
+        {
+            header: 'Montant Total',
             cell: info => {
-                const type = info.getValue();
+                const qte = info.row.original.qte_depense;
+                const prix = info.row.original.prix_unitaire_depense;
+                const total = qte * prix;
                 return (
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        type === 'Revenu' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                        {type === 'Revenu' ? <ArrowUpCircle className="w-4 h-4 mr-1" /> : <ArrowDownCircle className="w-4 h-4 mr-1" />}
-                        {type}
+                    <span className="font-bold text-red-500">
+                        {total.toLocaleString('fr-FR')} Ar
                     </span>
                 );
             }
         },
         {
             header: 'Date',
-            accessorKey: 'date_budget',
+            accessorKey: 'date_depense',
             cell: info => new Date(info.getValue()).toLocaleDateString('fr-FR')
         },
-        { header: 'Description', accessorKey: 'description_budget' },
-        { header: 'ID Membre', accessorKey: 'id_membre' },
+        {
+            header: 'Heure',
+            accessorKey: 'heure_depense'
+        },
     ], []);
 
     const table = useReactTable({
@@ -81,40 +88,50 @@ const Comptes = () => {
     });
 
     // Composant pour la carte mobile
-    const BudgetCard = ({ budget }) => (
-        <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
-            <div className="flex items-center mb-3 justify-between">
-                <div className="flex items-center">
-                    <DollarSign className="w-6 h-6 mr-2 text-blue-400" />
-                    <h3 className={`text-lg font-semibold ${budget.montant >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {budget.montant.toLocaleString('fr-FR')} Ar
+    const DepenseCard = ({ depense }) => {
+        const montantTotal = depense.qte_depense * depense.prix_unitaire_depense;
+
+        return (
+            <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
+                <div className="flex items-center mb-3">
+                    <ShoppingCart className="w-6 h-6 mr-2 text-blue-400" />
+                    <h3 className="text-lg font-semibold text-white">
+                        {depense.titre_depense}
                     </h3>
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    budget.type_budget === 'Revenu' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                    {budget.type_budget === 'Revenu' ? <ArrowUpCircle className="w-4 h-4 mr-1" /> : <ArrowDownCircle className="w-4 h-4 mr-1" />}
-                    {budget.type_budget}
-                </span>
+                <div className="space-y-2">
+                    <div className="flex items-center">
+                        <Package className="w-5 h-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-300">
+                            Quantité: {depense.qte_depense.toLocaleString('fr-FR')} unité(s)
+                        </span>
+                    </div>
+                    <div className="flex items-center">
+                        <DollarSign className="w-5 h-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-amber-500">
+                            Prix unitaire: {depense.prix_unitaire_depense.toLocaleString('fr-FR')} Ar
+                        </span>
+                    </div>
+                    <div className="flex items-center">
+                        <Receipt className="w-5 h-5 mr-2 text-gray-400" />
+                        <span className="text-sm font-bold text-red-500">
+                            Total: {montantTotal.toLocaleString('fr-FR')} Ar
+                        </span>
+                    </div>
+                    <div className="flex items-center">
+                        <Calendar className="w-5 h-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-300">
+                            {new Date(depense.date_depense).toLocaleDateString('fr-FR')}
+                        </span>
+                    </div>
+                    <div className="flex items-center">
+                        <Clock className="w-5 h-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-300">{depense.heure_depense}</span>
+                    </div>
+                </div>
             </div>
-            <div className="space-y-2">
-                <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">
-                        {new Date(budget.date_budget).toLocaleDateString('fr-FR')}
-                    </span>
-                </div>
-                <div className="flex items-center">
-                    <ClipboardList className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">{budget.description_budget}</span>
-                </div>
-                <div className="flex items-center">
-                    <User className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">Membre ID: {budget.id_membre}</span>
-                </div>
-            </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="p-2 sm:p-4">
@@ -123,7 +140,7 @@ const Comptes = () => {
                 <div className="space-y-4">
                     {/* Title and Mobile Menu Button */}
                     <div className="flex items-center justify-between">
-                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Budgets</h1>
+                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Dépenses</h1>
                         <button
                             className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
                             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -148,15 +165,13 @@ const Comptes = () => {
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button
-                                className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
+                            <button className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
                                 <Download className="w-5 h-5 text-white"/>
                                 <span className="ml-2 font-regular text-white">Importer</span>
                             </button>
-                            <button
-                                className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
+                            <button className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
                                 <Plus className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Ajouter</span>
+                                <span className="ml-2 font-regular text-white">Nouvelle Dépense</span>
                             </button>
                         </div>
                     </div>
@@ -168,9 +183,9 @@ const Comptes = () => {
                 {/* Mobile Cards View */}
                 <div className="lg:hidden">
                     {table.getRowModel().rows.map((row) => (
-                        <BudgetCard
-                            key={row.original.id_budget}
-                            budget={row.original}
+                        <DepenseCard
+                            key={row.original.id_depense}
+                            depense={row.original}
                         />
                     ))}
                 </div>
@@ -268,4 +283,4 @@ const Comptes = () => {
     );
 };
 
-export default Comptes;
+export default Depense;
