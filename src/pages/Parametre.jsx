@@ -12,6 +12,12 @@ import {
     List,
     User
 } from 'lucide-react';
+//importer le Modal Add Annees Univ
+import AddAnneesUnivModal from '../components/AddAnneesUnivModal.jsx'
+//importer le modal Add Promotion
+import AddPromotionModal from '../components/AddPromotionsModal.jsx';
+//importer le modal Edit Promotion
+import EditPromotionModal from '../components/EditPromotionModal.jsx';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');
@@ -19,6 +25,13 @@ const Parametre = () => {
     const [promotions, setPromotions] = useState([]);
     const [niveaux, setNiveaux] = useState([]);
     const [viewMode, setViewMode] = useState('list'); // 'list' ou 'grid'
+    //état pour gérer l'ouverture/fermeture du modal Add Annee Univ
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    //Etat pour gérer l'ouverture/fermeture du modal Add Promotions
+    const [isAddPromModalOpen, setIsAddPromModalOpen] = useState(false);
+    //Etat pour gerer la modification Promotion dans Modal
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedPromotion, setSelectedPromotion] = useState(null);
 
     useEffect(() => {
         // Charger et trier les années universitaires
@@ -118,10 +131,26 @@ const Parametre = () => {
     const PromotionCard = ({ promo }) => (
         <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
             <div className="bg-gray-700 rounded-lg p-4 h-full">
-                <div className="flex items-center space-x-4">
-                    <GraduationCap className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                <div className="flex flex-col h-full">
+                    {/* En-tête de la carte avec le bouton d'édition */}
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                            <GraduationCap className="w-6 h-6 text-blue-400 flex-shrink-0 mr-3" />
+                            <button
+                                onClick={() => {
+                                    setSelectedPromotion(promo);
+                                    setIsEditModalOpen(true);
+                                }}
+                                className="p-1.5 hover:bg-gray-600 rounded-full transition-colors ml-auto"
+                            >
+                                <Pencil className="w-4 h-4 text-gray-400 hover:text-white" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Contenu de la carte */}
                     <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-white">{promo.name_prom}</h3>
+                        <h3 className="text-lg font-medium text-white mb-1">{promo.name_prom}</h3>
                         <span className="text-sm text-gray-300">Année : {promo.annee_prom}</span>
                     </div>
                 </div>
@@ -129,11 +158,11 @@ const Parametre = () => {
         </div>
     );
 
-    const NiveauCard = ({ niveau }) => (
+    const NiveauCard = ({niveau}) => (
         <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
             <div className="bg-gray-700 rounded-lg p-4 h-full">
                 <div className="flex items-center space-x-4">
-                    <School className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                    <School className="w-6 h-6 text-blue-400 flex-shrink-0"/>
                     <div className="flex-grow">
                         <h3 className="text-lg font-medium text-white">{niveau.name_niveau}</h3>
                     </div>
@@ -198,12 +227,24 @@ const Parametre = () => {
                                 activeTab === 'promotions' ? 'une promotion' : 'un niveau'
                         }`}
                         color="bg-green-600 hover:bg-green-700"
+                        //conditions pour ouvrir le modal Add Annee Univ, Promotion, Niveau
+                        onClick={() => {
+                            if (activeTab === 'annees') {
+                                setIsAddModalOpen(true);
+                            }else if (activeTab === 'promotions') {
+                                setIsAddPromModalOpen(true);
+                            }
+                            // Ajouter d'autres conditions pour les autres onglets si nécessaire
+                        }}
                     />
-                    <ActionButton
-                        icon={Pencil}
-                        label="Modifier"
-                        color="bg-gray-700 hover:bg-gray-600"
-                    />
+                    {/* Le bouton Modifier ne s'affiche que si l'onglet actif est "promotions" */}
+                    {/*{activeTab === 'promotions' && (*/}
+                    {/*    <ActionButton*/}
+                    {/*        icon={Pencil}*/}
+                    {/*        label="Modifier"*/}
+                    {/*        color="bg-gray-700 hover:bg-gray-600"*/}
+                    {/*    />*/}
+                    {/*)}*/}
                 </div>
 
                 {/* Contenu des onglets */}
@@ -224,6 +265,45 @@ const Parametre = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Modal pour l'ajout d'année universitaire */}
+            <AddAnneesUnivModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={(newAnnee) => {
+                    setAnneesUniv(prev => [...prev, newAnnee].sort((a, b) => b.annee.localeCompare(a.annee)));
+                    setIsAddModalOpen(false);
+                }}
+            />
+            {/* Modal pour l'ajout de promotion */}
+            <AddPromotionModal
+                isOpen={isAddPromModalOpen}
+                onClose={() => setIsAddPromModalOpen(false)}
+                onSubmit={(newPromotion) => {
+                    setPromotions(prev => [...prev, newPromotion].sort((a, b) =>
+                        b.annee_prom.localeCompare(a.annee_prom)
+                    ));
+                    setIsAddPromModalOpen(false);
+                }}
+            />
+            {/* Modal pour la modification de promotion */}
+            <EditPromotionModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedPromotion(null);
+                }}
+                promotionToEdit={selectedPromotion}
+                onSubmit={(updatedPromotion) => {
+                    setPromotions(prev =>
+                        prev.map(p =>
+                            p.id_prom === updatedPromotion.id_prom ? updatedPromotion : p
+                        ).sort((a, b) => b.annee_prom.localeCompare(a.annee_prom))
+                    );
+                    setIsEditModalOpen(false);
+                    setSelectedPromotion(null);
+                }}
+            />
         </div>
     );
 };

@@ -39,6 +39,7 @@ const Membres = () => {
             .catch(error => console.error('Error fetching data:', error));
     }, []);
 
+    {/*Colonne des Tables*/}
     const columns = useMemo(() => [
         {
             header: 'ID',
@@ -75,6 +76,7 @@ const Membres = () => {
         },
     ], []);
 
+    {/*Importation du table de Tanstack/Table*/}
     const table = useReactTable({
         data,
         columns,
@@ -119,6 +121,7 @@ const Membres = () => {
         document.body.removeChild(link);
     };
 
+    {/*CARD pour Mobile*/}
     const MobileCard = ({ row }) => (
         <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-lg">
             <div className="flex justify-between items-start mb-3">
@@ -156,6 +159,7 @@ const Membres = () => {
         </div>
     );
 
+    {/*Choix pour Mobile ou Desktop (Table/Card) */}
     const renderTableOrCards = () => {
         if (isMobileView) {
             return (
