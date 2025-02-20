@@ -22,6 +22,22 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
     useEffect(() => {
         if (isOpen) {
+            document.body.style.overflow = 'hidden'; // Désactive le scroll
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    e.preventDefault(); // Empêche la fermeture avec "Escape"
+                }
+            };
+
+
+            window.addEventListener('keydown', handleKeyDown);
+
+            return () => {
+                document.body.style.overflow = ''; // Réactive le scroll à la fermeture
+                window.removeEventListener('keydown', handleKeyDown);
+            };
+
             const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
             setFormData({
                 ...initialFormData,
