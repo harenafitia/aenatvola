@@ -243,7 +243,7 @@ const Parametre = () => {
             {/* Contenu */}
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                 {/* Actions avec barre de recherche */}
-                <div className="mb-4 flex flex-wrap items-center gap-2 lg:space-x-4">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
                     {/* Champ de recherche */}
                     <div className="flex-1 flex-col lg:flex-row lg:items-center gap-4">
                         <input
