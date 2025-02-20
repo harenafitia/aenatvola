@@ -88,7 +88,7 @@ const Comptes = () => {
         setData(prevData => [...prevData, { ...newBudget, id_budget: newId }]);
         setIsModalOpen(false);
     };
-
+    
     // Composant pour la carte mobile
     const BudgetCard = ({ budget }) => (
         <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
