@@ -36,6 +36,70 @@ const Parametre = () => {
     //Etat pour gerer la modification Promotion dans Modal
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedPromotion, setSelectedPromotion] = useState(null);
+    //Etat pour la pagination en bas des contenus
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(8); // Nombre d'éléments par page
+
+    // Fonction Pagination
+    const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange }) => {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        if (totalPages <= 1) return null;
+
+        return (
+            <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                <span className="text-white">
+                    Page {currentPage} sur {totalPages}
+                </span>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => onPageChange(1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                    >
+                        {'<<'}
+                    </button>
+                    <button
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                    >
+                        {'<'}
+                    </button>
+                    <button
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                    >
+                        {'>'}
+                    </button>
+                    <button
+                        onClick={() => onPageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
+                    >
+                        {'>>'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    //Effet pour reinitialiser la pagination lors du changement d'onglet ou de recherche
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab, searchTerm]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         // Charger et trier les années universitaires
@@ -178,20 +242,32 @@ const Parametre = () => {
     // Fonction de filtrage selon l'onglet actif
     const getFilteredItems = () => {
         const term = searchTerm.toLowerCase();
+        let filteredData;
+
+        // Filtrer les données selon l'onglet actif
         if (activeTab === 'annees') {
-            return anneesUniv.filter(annee =>
+            filteredData = anneesUniv.filter(annee =>
                 annee.annee.toLowerCase().includes(term)
             );
         } else if (activeTab === 'promotions') {
-            return promotions.filter(promo =>
+            filteredData = promotions.filter(promo =>
                 promo.name_prom.toLowerCase().includes(term) ||
                 promo.annee_prom.toLowerCase().includes(term)
             );
         } else {
-            return niveaux.filter(niveau =>
+            filteredData = niveaux.filter(niveau =>
                 niveau.name_niveau.toLowerCase().includes(term)
             );
         }
+
+        // Calculer l'index de début et de fin pour la pagination
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+        return {
+            items: filteredData.slice(indexOfFirstItem, indexOfLastItem),
+            totalItems: filteredData.length
+        };
     };
 
 
@@ -277,7 +353,7 @@ const Parametre = () => {
                 {/* Contenu des onglets */}
                 <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
                     {(() => {
-                        const filteredItems = getFilteredItems();
+                        const { items: filteredItems, totalItems } = getFilteredItems();
 
                         if (filteredItems.length === 0) {
                             return (
@@ -289,22 +365,39 @@ const Parametre = () => {
                             );
                         }
 
-                        switch (activeTab) {
-                            case 'annees':
-                                return filteredItems.map((annee) => (
-                                    <AnneeCard key={annee.id_anneuniv} annee={annee} />
-                                ));
-                            case 'promotions':
-                                return filteredItems.map((promo) => (
-                                    <PromotionCard key={promo.id_prom} promo={promo} />
-                                ));
-                            case 'niveaux':
-                                return filteredItems.map((niveau) => (
-                                    <NiveauCard key={niveau.id_niveau} niveau={niveau} />
-                                ));
-                            default:
-                                return null;
-                        }
+                        return (
+                            <>
+                                <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
+                                    {(() => {
+                                        switch (activeTab) {
+                                            case 'annees':
+                                                return filteredItems.map((annee) => (
+                                                    <AnneeCard key={annee.id_anneuniv} annee={annee} />
+                                                ));
+                                            case 'promotions':
+                                                return filteredItems.map((promo) => (
+                                                    <PromotionCard key={promo.id_prom} promo={promo} />
+                                                ));
+                                            case 'niveaux':
+                                                return filteredItems.map((niveau) => (
+                                                    <NiveauCard key={niveau.id_niveau} niveau={niveau} />
+                                                ));
+                                            default:
+                                                return null;
+                                        }
+                                    })()}
+                                </div>
+                                <Pagination
+                                    totalItems={totalItems}
+                                    itemsPerPage={itemsPerPage}
+                                    currentPage={currentPage}
+                                    onPageChange={(page) => {
+                                        setCurrentPage(page);
+                                        window.scrollTo(0, 0);
+                                    }}
+                                />
+                            </>
+                        );
                     })()}
                 </div>
             </div>
