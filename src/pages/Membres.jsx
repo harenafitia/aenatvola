@@ -7,7 +7,7 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { Plus, ChevronDown, Download } from "lucide-react";
+import { Plus, ChevronDown, Download, Phone, MapPin, School, Book } from "lucide-react";
 import AddMemberModal from '../components/AddMemberModal.jsx';
 
 const Membres = () => {
@@ -15,7 +15,17 @@ const Membres = () => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [sorting, setSorting] = useState([]); // Add sorting state
+    const [sorting, setSorting] = useState([]);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         fetch('/JSON/membres.json')
@@ -80,13 +90,12 @@ const Membres = () => {
         onGlobalFilterChange: setGlobalFilter,
         initialState: {
             pagination: {
-                pageSize: 10, // Set default page size
+                pageSize: 10,
             },
         },
     });
 
     const handleAddMember = (newMember) => {
-        // Generate a unique ID based on timestamp and random number
         const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         setData(prevData => [...prevData, { ...newMember, id_membre: newId }]);
         setIsModalOpen(false);
@@ -94,9 +103,7 @@ const Membres = () => {
 
     const handleDownload = () => {
         const csvContent = [
-            // Headers
             columns.map(col => col.header).join(','),
-            // Data rows
             ...data.map(row =>
                 columns.map(col => row[col.accessorKey]).join(',')
             )
@@ -110,6 +117,101 @@ const Membres = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const MobileCard = ({ row }) => (
+        <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-lg">
+            <div className="flex justify-between items-start mb-3">
+                <h3 className="text-lg font-semibold text-white">
+                    {row.getValue('nom_prenom_membre')}
+                </h3>
+                <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
+                    ID: {row.getValue('id_membre')}
+                </span>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center text-gray-300">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span className="text-sm">{row.getValue('adresse_membre')}</span>
+                </div>
+
+                <div className="flex items-center text-gray-300">
+                    <Phone className="w-4 h-4 mr-2" />
+                    <span className="text-sm">{row.getValue('tel_membre')}</span>
+                </div>
+
+                <div className="flex items-center text-gray-300">
+                    <School className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Promotion: {row.getValue('id_prom')}</span>
+                </div>
+
+                <div className="flex items-center text-gray-300">
+                    <Book className="w-4 h-4 mr-2" />
+                    <span className="text-sm">
+                        {row.getValue('id_mention')} - {row.getValue('id_parcours')}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderTableOrCards = () => {
+        if (isMobileView) {
+            return (
+                <div className="mt-4">
+                    {table.getRowModel().rows.map(row => (
+                        <MobileCard key={row.id} row={row} />
+                    ))}
+                </div>
+            );
+        }
+
+        return (
+            <div className="mt-4 overflow-x-auto rounded-lg">
+                <table className="min-w-full divide-y divide-gray-700">
+                    <thead className="bg-gray-800">
+                    {table.getHeaderGroups().map(headerGroup => (
+                        <tr key={headerGroup.id}>
+                            {headerGroup.headers.map(header => (
+                                <th
+                                    key={header.id}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    className="px-3 py-3.5 text-left text-sm font-semibold text-white cursor-pointer hover:bg-gray-700"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                        {header.column.getIsSorted() ? (
+                                            header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'
+                                        ) : null}
+                                    </div>
+                                </th>
+                            ))}
+                        </tr>
+                    ))}
+                    </thead>
+                    <tbody className="divide-y divide-gray-700 bg-gray-900">
+                    {table.getRowModel().rows.length > 0 ? (
+                        table.getRowModel().rows.map(row => (
+                            <tr key={row.id} className="hover:bg-gray-800 transition-colors">
+                                {row.getVisibleCells().map(cell => (
+                                    <td key={cell.id} className="px-3 py-2 text-sm text-white">
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={columns.length} className="px-3 py-4 text-center text-white">
+                                Aucun membre trouvé
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
+            </div>
+        );
     };
 
     return (
@@ -155,49 +257,7 @@ const Membres = () => {
                 </div>
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-lg">
-                <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-800">
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <th
-                                    key={header.id}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                    className="px-3 py-3.5 text-left text-sm font-semibold text-white cursor-pointer hover:bg-gray-700"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                        {header.column.getIsSorted() ? (
-                                            header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'
-                                        ) : null}
-                                    </div>
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                    </thead>
-                    <tbody className="divide-y divide-gray-700 bg-gray-900">
-                    {table.getRowModel().rows.length > 0 ? (
-                        table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className="hover:bg-gray-800 transition-colors">
-                                {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-3 py-2 text-sm text-white">
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={columns.length} className="px-3 py-4 text-center text-white">
-                                Aucun membre trouvé
-                            </td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
-            </div>
+            {renderTableOrCards()}
 
             <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
                 <div className="flex items-center gap-2">
