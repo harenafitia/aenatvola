@@ -122,7 +122,7 @@ const Sidebar = () => {
                     <NavLink to="/" icon={LayoutDashboard}>Dashboard</NavLink>
                     <NavLink to="/membres" icon={Users}>Membres</NavLink>
                     <NavLink to="/compte" icon={Wallet}>Compte</NavLink>
-                    <NavLink to="/depense" icon={Receipt}>Dépense</NavLink>
+                    {/*<NavLink to="/depense" icon={Receipt}>Dépense</NavLink>*/}
                     <NavLink to="/parametre" icon={Settings}>Paramètre</NavLink>
                     <NavLink to="/profil" icon={UserCircle}>Profil</NavLink>
                 </nav>
