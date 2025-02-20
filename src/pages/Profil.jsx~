@@ -1,0 +1,181 @@
+import { useState, useEffect } from 'react';
+import { Camera, Mail, Phone, MapPin, Save, Edit, X, Lock, Eye, EyeOff } from 'lucide-react';
+
+const Profil = () => {
+    const [userInfo, setUserInfo] = useState({
+        nom: '',
+        prenom: '',
+        email: '',
+        telephone: '',
+        adresse: '',
+        photo: null
+    });
+
+    const [passwordInfo, setPasswordInfo] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [showPasswords, setShowPasswords] = useState({
+        current: false,
+        new: false,
+        confirm: false
+    });
+    const [passwordErrors, setPasswordErrors] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    // ... (autres useEffect restent inchangés)
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            // Validation du mot de passe
+            if (isEditing && passwordInfo.newPassword) {
+                const errors = {};
+
+                if (!passwordInfo.currentPassword) {
+                    errors.currentPassword = 'Le mot de passe actuel est requis';
+                }
+
+                if (passwordInfo.newPassword.length < 8) {
+                    errors.newPassword = 'Le nouveau mot de passe doit contenir au moins 8 caractères';
+                }
+
+                if (passwordInfo.newPassword !== passwordInfo.confirmPassword) {
+                    errors.confirmPassword = 'Les mots de passe ne correspondent pas';
+                }
+
+                if (Object.keys(errors).length > 0) {
+                    setPasswordErrors(errors);
+                    return;
+                }
+            }
+
+            // TODO: Implémenter l'appel API pour mettre à jour les informations
+            setIsEditing(false);
+            setPasswordInfo({
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            });
+            setPasswordErrors({});
+            // Afficher un message de succès
+        } catch (err) {
+            setError('Une erreur est survenue lors de la mise à jour du profil.');
+        }
+    };
+
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordInfo(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        // Effacer l'erreur correspondante lors de la modification
+        if (passwordErrors[name]) {
+            setPasswordErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
+
+    // ... (autres fonctions de gestion restent inchangées)
+
+    const renderPasswordFields = () => {
+        if (!isEditing) return null;
+
+        const renderPasswordField = (label, name) => (
+            <div className="relative">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                    {label}
+                </label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <Lock className="w-5 h-5" />
+                    </span>
+                    <input
+                        type={showPasswords[name] ? 'text' : 'password'}
+                        name={name}
+                        value={passwordInfo[name]}
+                        onChange={handlePasswordChange}
+                        className={`w-full p-2 pl-10 bg-gray-700 text-white border ${
+                            passwordErrors[name] ? 'border-red-500' : 'border-gray-600'
+                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors`}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPasswords(prev => ({
+                            ...prev,
+                            [name]: !prev[name]
+                        }))}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                    >
+                        {showPasswords[name] ? (
+                            <EyeOff className="w-5 h-5" />
+                        ) : (
+                            <Eye className="w-5 h-5" />
+                        )}
+                    </button>
+                </div>
+                {passwordErrors[name] && (
+                    <p className="text-red-500 text-sm mt-1">{passwordErrors[name]}</p>
+                )}
+            </div>
+        );
+
+        return (
+            <div className="mt-8 border-t border-gray-700 pt-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Modifier le mot de passe</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {renderPasswordField('Mot de passe actuel', 'currentPassword')}
+                    {renderPasswordField('Nouveau mot de passe', 'newPassword')}
+                    <div className="md:col-span-2">
+                        {renderPasswordField('Confirmer le nouveau mot de passe', 'confirmPassword')}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-900 p-4">
+            <div className="max-w-4xl mx-auto">
+                {renderProfileHeader()}
+
+                <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+                    {error && (
+                        <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit}>
+                        {renderProfileImage()}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {renderFormField('Prénom', 'prenom')}
+                            {renderFormField('Nom', 'nom')}
+                            {renderFormField('Email', 'email', 'email', <Mail className="w-5 h-5" />)}
+                            {renderFormField('Téléphone', 'telephone', 'tel', <Phone className="w-5 h-5" />)}
+                            {renderFormField('Adresse', 'adresse', 'text', <MapPin className="w-5 h-5" />)}
+                        </div>
+
+                        {renderPasswordFields()}
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Profil;

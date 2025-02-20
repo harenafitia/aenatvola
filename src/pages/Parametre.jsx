@@ -203,16 +203,16 @@ const Parametre = () => {
                     <h1 className="text-2xl font-bold text-white">Paramètres</h1>
                     <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                         <ViewToggleButton
-                            isActive={viewMode === 'list'}
-                            icon={List}
-                            label="Liste"
-                            onClick={() => setViewMode('list')}
-                        />
-                        <ViewToggleButton
                             isActive={viewMode === 'grid'}
                             icon={LayoutGrid}
                             label="Grille"
                             onClick={() => setViewMode('grid')}
+                        />
+                        <ViewToggleButton
+                            isActive={viewMode === 'list'}
+                            icon={List}
+                            label="Liste"
+                            onClick={() => setViewMode('list')}
                         />
                     </div>
                 </div>
@@ -245,21 +245,14 @@ const Parametre = () => {
                 {/* Actions avec barre de recherche */}
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                     {/* Champ de recherche */}
-                    <div className="flex-1 max-w-md">
-                        <div className="relative">
-                            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                            <input
+                    <div className="flex-1 flex-col lg:flex-row lg:items-center gap-4">
+                        <input
                                 type="text"
-                                placeholder={`Rechercher ${
-                                    activeTab === 'annees' ? 'une année' :
-                                        activeTab === 'promotions' ? 'une promotion' :
-                                            'un niveau'
-                                }`}
+                                placeholder={`Rechercher ...`}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
+                                className="w-full flex-1 mr-4 px-4 py-2 bg-gray-900 text-white rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
                     </div>
 
                     {/* Bouton Ajouter */}

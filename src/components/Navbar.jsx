@@ -14,7 +14,7 @@ const Navbar = ({ title, user }) => {
                         {/* Titre et bouton menu mobile */}
                         <div className="flex items-center justify-between w-full">
                             {/* Titre */}
-                            <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
+                            {/*<h1 className="text-xl font-bold sm:text-2xl">{title}</h1>*/}
 
                             {/* Bouton menu mobile */}
                             <button
