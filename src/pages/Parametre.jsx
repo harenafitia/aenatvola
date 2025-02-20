@@ -10,7 +10,8 @@ import {
     Timer,
     LayoutGrid,
     List,
-    User
+    User,
+    Search
 } from 'lucide-react';
 //importer le Modal Add Annees Univ
 import AddAnneesUnivModal from '../components/AddAnneesUnivModal.jsx'
@@ -24,7 +25,10 @@ const Parametre = () => {
     const [anneesUniv, setAnneesUniv] = useState([]);
     const [promotions, setPromotions] = useState([]);
     const [niveaux, setNiveaux] = useState([]);
-    const [viewMode, setViewMode] = useState('list'); // 'list' ou 'grid'
+    // Etat pour la vue 'list' ou 'grid'
+    const [viewMode, setViewMode] = useState('grid');
+    // Nouvel état pour la recherche
+    const [searchTerm, setSearchTerm] = useState('');
     //état pour gérer l'ouverture/fermeture du modal Add Annee Univ
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     //Etat pour gérer l'ouverture/fermeture du modal Add Promotions
@@ -171,6 +175,26 @@ const Parametre = () => {
         </div>
     );
 
+    // Fonction de filtrage selon l'onglet actif
+    const getFilteredItems = () => {
+        const term = searchTerm.toLowerCase();
+        if (activeTab === 'annees') {
+            return anneesUniv.filter(annee =>
+                annee.annee.toLowerCase().includes(term)
+            );
+        } else if (activeTab === 'promotions') {
+            return promotions.filter(promo =>
+                promo.name_prom.toLowerCase().includes(term) ||
+                promo.annee_prom.toLowerCase().includes(term)
+            );
+        } else {
+            return niveaux.filter(niveau =>
+                niveau.name_niveau.toLowerCase().includes(term)
+            );
+        }
+    };
+
+
     return (
         <div className="p-4 space-y-6">
             {/* En-tête */}
@@ -218,51 +242,77 @@ const Parametre = () => {
 
             {/* Contenu */}
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
-                {/* Actions */}
-                <div className="mb-4 flex flex-wrap gap-2">
+                {/* Actions avec barre de recherche */}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                    {/* Champ de recherche */}
+                    <div className="flex-1 max-w-md">
+                        <div className="relative">
+                            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                            <input
+                                type="text"
+                                placeholder={`Rechercher ${
+                                    activeTab === 'annees' ? 'une année' :
+                                        activeTab === 'promotions' ? 'une promotion' :
+                                            'un niveau'
+                                }`}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Bouton Ajouter */}
                     <ActionButton
                         icon={Plus}
                         label={`Ajouter ${
                             activeTab === 'annees' ? 'une année' :
-                                activeTab === 'promotions' ? 'une promotion' : 'un niveau'
+                                activeTab === 'promotions' ? 'une promotion' :
+                                    'un niveau'
                         }`}
                         color="bg-green-600 hover:bg-green-700"
-                        //conditions pour ouvrir le modal Add Annee Univ, Promotion, Niveau
                         onClick={() => {
                             if (activeTab === 'annees') {
                                 setIsAddModalOpen(true);
-                            }else if (activeTab === 'promotions') {
+                            } else if (activeTab === 'promotions') {
                                 setIsAddPromModalOpen(true);
                             }
-                            // Ajouter d'autres conditions pour les autres onglets si nécessaire
                         }}
                     />
-                    {/* Le bouton Modifier ne s'affiche que si l'onglet actif est "promotions" */}
-                    {/*{activeTab === 'promotions' && (*/}
-                    {/*    <ActionButton*/}
-                    {/*        icon={Pencil}*/}
-                    {/*        label="Modifier"*/}
-                    {/*        color="bg-gray-700 hover:bg-gray-600"*/}
-                    {/*    />*/}
-                    {/*)}*/}
                 </div>
 
                 {/* Contenu des onglets */}
                 <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
-                    {/* Années Universitaires */}
-                    {activeTab === 'annees' && anneesUniv.map((annee) => (
-                        <AnneeCard key={annee.id_anneuniv} annee={annee} />
-                    ))}
+                    {(() => {
+                        const filteredItems = getFilteredItems();
 
-                    {/* Promotions */}
-                    {activeTab === 'promotions' && promotions.map((promo) => (
-                        <PromotionCard key={promo.id_prom} promo={promo} />
-                    ))}
+                        if (filteredItems.length === 0) {
+                            return (
+                                <div className="w-full text-center py-8">
+                                    <p className="text-gray-400">
+                                        Aucun résultat trouvé pour "{searchTerm}"
+                                    </p>
+                                </div>
+                            );
+                        }
 
-                    {/* Niveaux */}
-                    {activeTab === 'niveaux' && niveaux.map((niveau) => (
-                        <NiveauCard key={niveau.id_niveau} niveau={niveau} />
-                    ))}
+                        switch (activeTab) {
+                            case 'annees':
+                                return filteredItems.map((annee) => (
+                                    <AnneeCard key={annee.id_anneuniv} annee={annee} />
+                                ));
+                            case 'promotions':
+                                return filteredItems.map((promo) => (
+                                    <PromotionCard key={promo.id_prom} promo={promo} />
+                                ));
+                            case 'niveaux':
+                                return filteredItems.map((niveau) => (
+                                    <NiveauCard key={niveau.id_niveau} niveau={niveau} />
+                                ));
+                            default:
+                                return null;
+                        }
+                    })()}
                 </div>
             </div>
 
