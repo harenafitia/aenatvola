@@ -7,29 +7,62 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import {Pencil, Plus, Phone, MapPin, School, Book, User, ChevronDown, Download} from "lucide-react";
+import { Plus, ChevronDown, Download } from "lucide-react";
+import AddMemberModal from '../components/AddMemberModal.jsx';
 
 const Membres = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sorting, setSorting] = useState([]); // Add sorting state
 
     useEffect(() => {
         fetch('/JSON/membres.json')
-            .then((response) => response.json())
-            .then((data) => setData(data))
-            .catch((error) => console.error('Error fetching data:', error));
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => setData(data))
+            .catch(error => console.error('Error fetching data:', error));
     }, []);
 
     const columns = useMemo(() => [
-        { header: 'ID', accessorKey: 'id_membre' },
-        { header: 'Nom et Prénom', accessorKey: 'nom_prenom_membre' },
-        { header: 'Commune d\'origine', accessorKey: 'com_origin' },
-        { header: 'Adresse', accessorKey: 'adresse_membre' },
-        { header: 'Téléphone', accessorKey: 'tel_membre' },
-        { header: 'Promotion', accessorKey: 'id_prom' },
-        { header: 'Mention', accessorKey: 'id_mention' },
-        { header: 'Parcours', accessorKey: 'id_parcours' },
+        {
+            header: 'ID',
+            accessorKey: 'id_membre',
+            sortingFn: 'alphanumeric'
+        },
+        {
+            header: 'Nom et Prénom',
+            accessorKey: 'nom_prenom_membre',
+        },
+        {
+            header: 'Commune d\'origine',
+            accessorKey: 'com_origin',
+        },
+        {
+            header: 'Adresse',
+            accessorKey: 'adresse_membre',
+        },
+        {
+            header: 'Téléphone',
+            accessorKey: 'tel_membre',
+        },
+        {
+            header: 'Promotion',
+            accessorKey: 'id_prom',
+        },
+        {
+            header: 'Mention',
+            accessorKey: 'id_mention',
+        },
+        {
+            header: 'Parcours',
+            accessorKey: 'id_parcours',
+        },
     ], []);
 
     const table = useReactTable({
@@ -39,190 +72,176 @@ const Membres = () => {
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        state: { globalFilter },
+        state: {
+            globalFilter,
+            sorting,
+        },
+        onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
+        initialState: {
+            pagination: {
+                pageSize: 10, // Set default page size
+            },
+        },
     });
 
-    // Composant pour la carte mobile
-    const MemberCard = ({ member }) => (
-        <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
-            <div className="flex items-center mb-3">
-                <User className="w-6 h-6 mr-2 text-blue-400" />
-                <h3 className="text-lg font-semibold text-white">
-                    {member.nom_prenom_membre}
-                </h3>
-            </div>
-            <div className="space-y-2">
-                <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">{member.com_origin} - {member.adresse_membre}</span>
-                </div>
-                <div className="flex items-center">
-                    <Phone className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">{member.tel_membre}</span>
-                </div>
-                <div className="flex items-center">
-                    <School className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">Promotion: {member.id_prom}</span>
-                </div>
-                <div className="flex items-center">
-                    <Book className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">
-                        {member.id_mention} - {member.id_parcours}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
+    const handleAddMember = (newMember) => {
+        // Generate a unique ID based on timestamp and random number
+        const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        setData(prevData => [...prevData, { ...newMember, id_membre: newId }]);
+        setIsModalOpen(false);
+    };
+
+    const handleDownload = () => {
+        const csvContent = [
+            // Headers
+            columns.map(col => col.header).join(','),
+            // Data rows
+            ...data.map(row =>
+                columns.map(col => row[col.accessorKey]).join(',')
+            )
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'membres.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="p-2 sm:p-4">
             <div className="text-white p-2 sm:p-4 shadow-md rounded-lg bg-gray-800">
-                {/* Header Section */}
-                <div className="space-y-4">
-                    {/* Title and Mobile Menu Button */}
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Membres</h1>
+                <div className="flex items-center justify-between mb-4">
+                    <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Membres</h1>
+                    <button
+                        className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
+                        onClick={() => setShowMobileMenu(!showMobileMenu)}
+                        aria-label="Toggle menu"
+                    >
+                        <ChevronDown className={`w-6 h-6 transform transition-transform ${showMobileMenu ? 'rotate-180' : ''}`} />
+                    </button>
+                </div>
+
+                <div className={`flex flex-col lg:flex-row lg:items-center gap-4 ${showMobileMenu ? 'block' : 'hidden lg:flex'}`}>
+                    <input
+                        type="text"
+                        value={globalFilter ?? ''}
+                        onChange={(e) => setGlobalFilter(e.target.value)}
+                        placeholder="Rechercher..."
+                        className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        aria-label="Search members"
+                    />
+                    <div className="flex gap-2">
                         <button
-                            className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
-                            onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            onClick={handleDownload}
+                            className="px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors flex items-center gap-2"
+                            aria-label="Download data"
                         >
-                            <ChevronDown className="w-6 h-6" />
+                            <Download className="w-5 h-5 text-white" />
+                            <span className="hidden sm:inline text-white">Telecharger</span>
+                        </button>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors flex items-center gap-2"
+                        >
+                            <Plus className="w-5 h-5 text-white" />
+                            <span className="hidden sm:inline text-white">Ajouter</span>
                         </button>
                     </div>
-
-                    {/* Controls Section */}
-                    <div className={`flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4 
-                        ${showMobileMenu ? 'block' : 'hidden lg:flex'}`}>
-                        {/* Search Input */}
-                        <div className="flex-grow">
-                            <input
-                                type="text"
-                                value={globalFilter}
-                                onChange={(e) => setGlobalFilter(e.target.value)}
-                                placeholder="Rechercher..."
-                                className="w-full px-4 py-2 bg-gray-900 text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <button
-                                className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
-                                <Download className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Importer</span>
-                            </button>
-                            <button
-                                className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
-                                <Plus className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Ajouter</span>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            {/* Responsive Content Section */}
-            <div className="mt-4">
-                {/* Mobile Cards View */}
-                <div className="lg:hidden">
-                    {table.getRowModel().rows.map((row) => (
-                        <MemberCard
-                            key={row.original.id_membre}
-                            member={row.original}
-                        />
+            <div className="mt-4 overflow-x-auto rounded-lg">
+                <table className="min-w-full divide-y divide-gray-700">
+                    <thead className="bg-gray-800">
+                    {table.getHeaderGroups().map(headerGroup => (
+                        <tr key={headerGroup.id}>
+                            {headerGroup.headers.map(header => (
+                                <th
+                                    key={header.id}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    className="px-3 py-3.5 text-left text-sm font-semibold text-white cursor-pointer hover:bg-gray-700"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                        {header.column.getIsSorted() ? (
+                                            header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'
+                                        ) : null}
+                                    </div>
+                                </th>
+                            ))}
+                        </tr>
                     ))}
-                </div>
-
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
-                    <div className="inline-block min-w-full align-middle">
-                        <div className="overflow-hidden border border-gray-700 rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-700">
-                                <thead className="bg-gray-800">
-                                {table.getHeaderGroups().map(headerGroup => (
-                                    <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map(column => (
-                                            <th
-                                                key={column.id}
-                                                className="px-3 py-3.5 text-left text-sm font-semibold text-white"
-                                            >
-                                                {flexRender(column.column.columnDef.header, column.getContext())}
-                                            </th>
-                                        ))}
-                                    </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700 bg-gray-900">
+                    {table.getRowModel().rows.length > 0 ? (
+                        table.getRowModel().rows.map(row => (
+                            <tr key={row.id} className="hover:bg-gray-800 transition-colors">
+                                {row.getVisibleCells().map(cell => (
+                                    <td key={cell.id} className="px-3 py-2 text-sm text-white">
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
                                 ))}
-                                </thead>
-                                <tbody className="divide-y divide-gray-700 bg-black">
-                                {table.getRowModel().rows.map(row => (
-                                    <tr key={row.id} className="hover:bg-gray-900">
-                                        {row.getVisibleCells().map(cell => (
-                                            <td key={cell.id} className="px-3 py-2 text-sm text-white">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={columns.length} className="px-3 py-4 text-center text-white">
+                                Aucun membre trouvé
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </table>
             </div>
 
-            {/* Pagination Section */}
-            <div className="mt-4 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                {/* Navigation Buttons */}
-                <div className="flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                    <span className="text-white">
+                        Page {table.getState().pagination.pageIndex + 1} sur {table.getPageCount()}
+                    </span>
+                </div>
+                <div className="flex gap-2">
                     <button
                         onClick={() => table.setPageIndex(0)}
                         disabled={!table.getCanPreviousPage()}
-                        className="px-3 py-1 bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
                         {'<<'}
                     </button>
                     <button
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
-                        className="px-3 py-1 bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
                         {'<'}
                     </button>
                     <button
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
-                        className="px-3 py-1 bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
                         {'>'}
                     </button>
                     <button
                         onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                         disabled={!table.getCanNextPage()}
-                        className="px-3 py-1 bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
                     >
                         {'>>'}
                     </button>
                 </div>
-
-                {/* Page Size and Info */}
-                <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
-                    <span className="text-sm text-white">
-                        Page {table.getState().pagination.pageIndex + 1} sur {table.getPageCount()}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm text-white">Lignes par page:</span>
-                        <select
-                            value={table.getState().pagination.pageSize}
-                            onChange={e => table.setPageSize(Number(e.target.value))}
-                            className="bg-gray-900 text-white rounded-md px-2 py-1 text-sm border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {[10, 20, 30, 40, 50].map(size => (
-                                <option key={size} value={size}>{size}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
             </div>
+
+            <AddMemberModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleAddMember}
+            />
         </div>
     );
 };

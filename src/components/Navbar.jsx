@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Bell, ChevronDown, Menu, X } from 'lucide-react';
+import { Bell, ChevronDown, X } from 'lucide-react';
 
 const Navbar = ({ title, user }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -85,11 +85,6 @@ const Navbar = ({ title, user }) => {
                     {/* Section utilisateur mobile */}
                     <div className="px-3 py-2">
                         <div className="flex items-center space-x-3">
-                            {/*<img*/}
-                            {/*    src={user.image}*/}
-                            {/*    alt={user.name}*/}
-                            {/*    className="w-10 h-10 rounded-full object-cover border-2 border-gray-600"*/}
-                            {/*/>*/}
                             <div className="flex-1">
                                 <div className="font-medium">{user.name}</div>
                                 <button
