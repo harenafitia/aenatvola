@@ -1,0 +1,20 @@
+{
+"users" : [
+  {
+    "id": 1,
+    "nom": "Harenafitia",
+    "email": "harenafitia@example.com",
+    "password": "123456",
+    "role": "Admin",
+    "photo_profil": "/images/profil1.jpg"
+  },
+  {
+    "id": 2,
+    "nom": "Irys",
+    "email": "irys@example.com",
+    "password": "azerty",
+    "role": "Membre",
+    "photo_profil": "/images/profil2.jpg"
+  }
+]
+}
