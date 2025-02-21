@@ -8,7 +8,6 @@ import {
     flexRender,
 } from '@tanstack/react-table';
 import {
-    Pencil,
     Plus,
     Calendar,
     DollarSign,
@@ -18,14 +17,18 @@ import {
     ArrowUpCircle,
     ArrowDownCircle, Download
 } from "lucide-react";
+//Import Modal Add Compte
 import AddCompteModal from '../components/AddCompteModal.jsx';
 
 const Comptes = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-
+    // Etat Modal ouvert ou fermer
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // Etat tri
+    const [sorting, setSorting] = useState([]);
+    const [columnFilters, setColumnFilters] = useState([]);
 
     useEffect(() => {
         fetch('/JSON/budget.json')
@@ -35,10 +38,16 @@ const Comptes = () => {
     }, []);
 
     const columns = useMemo(() => [
-        { header: 'ID', accessorKey: 'id_budget' },
+        {
+            header: 'ID',
+            accessorKey: 'id_budget',
+            enableSorting: true,
+        },
         {
             header: 'Montant',
             accessorKey: 'montant',
+            enableSorting: true,
+            sortingFn: 'alphanumeric',
             cell: info => {
                 const montant = info.getValue();
                 return (
@@ -46,11 +55,13 @@ const Comptes = () => {
                         {montant.toLocaleString('fr-FR')} Ar
                     </span>
                 );
-            }
+            },
+            filterFn: 'inNumberRange'
         },
         {
             header: 'Type',
             accessorKey: 'type_budget',
+            enableSorting: true,
             cell: info => {
                 const type = info.getValue();
                 return (
@@ -61,15 +72,26 @@ const Comptes = () => {
                         {type}
                     </span>
                 );
-            }
+            },
+            filterFn: 'equals'
         },
         {
             header: 'Date',
             accessorKey: 'date_budget',
+            enableSorting: true,
+            sortingFn: 'datetime',
             cell: info => new Date(info.getValue()).toLocaleDateString('fr-FR')
         },
-        { header: 'Description', accessorKey: 'description_budget' },
-        { header: 'ID Membre', accessorKey: 'id_membre' },
+        {
+            header: 'Description',
+            accessorKey: 'description_budget',
+            enableSorting: true,
+        },
+        {
+            header: 'ID Membre',
+            accessorKey: 'id_membre',
+            enableSorting: true,
+        },
     ], []);
 
     const table = useReactTable({
@@ -79,8 +101,14 @@ const Comptes = () => {
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        state: { globalFilter },
+        state: {
+            globalFilter,
+            sorting,
+            columnFilters,
+        },
         onGlobalFilterChange: setGlobalFilter,
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
     });
 
     const handleAddBudget = async (newBudget) => {
@@ -193,12 +221,78 @@ const Comptes = () => {
                                 <thead className="bg-gray-800">
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map(column => (
+                                        {headerGroup.headers.map(header => (
                                             <th
-                                                key={column.id}
+                                                key={header.id}
                                                 className="px-3 py-3.5 text-left text-sm font-semibold text-white"
                                             >
-                                                {flexRender(column.column.columnDef.header, column.getContext())}
+                                                <div className="flex flex-col gap-2">
+                                                    {/* En-tête de colonne avec tri */}
+                                                    <div
+                                                        className={`flex items-center gap-2 cursor-pointer ${
+                                                            header.column.getCanSort() ? 'hover:text-blue-400' : ''
+                                                        }`}
+                                                        onClick={header.column.getToggleSortingHandler()}
+                                                    >
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                        {{
+                                                            asc: ' 🔼',
+                                                            desc: ' 🔽',
+                                                        }[header.column.getIsSorted()] ?? null}
+                                                    </div>
+
+                                                    {/* Filtres spécifiques pour chaque colonne */}
+                                                    {header.column.getCanFilter() && (
+                                                        <div>
+                                                            {/* Filtre pour le type de budget */}
+                                                            {header.column.id === 'type_budget' ? (
+                                                                    <select
+                                                                        value={header.column.getFilterValue() ?? ''}
+                                                                        onChange={e => header.column.setFilterValue(e.target.value)}
+                                                                        className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
+                                                                    >
+                                                                        <option value="">Tous</option>
+                                                                        <option value="Revenu">Revenu</option>
+                                                                        <option value="Dépense">Dépense</option>
+                                                                    </select>
+                                                                ) :
+                                                                /* Filtre pour la date */
+                                                                // header.column.id === 'date_budget' ? (
+                                                                //         <div className="flex gap-1">
+                                                                //             <input
+                                                                //                 type="date"
+                                                                //                 value={header.column.getFilterValue()?.[0] ?? ''}
+                                                                //                 onChange={e => header.column.setFilterValue(prev => [
+                                                                //                     e.target.value,
+                                                                //                     prev?.[1]
+                                                                //                 ])}
+                                                                //                 className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
+                                                                //             />
+                                                                //             <input
+                                                                //                 type="date"
+                                                                //                 value={header.column.getFilterValue()?.[1] ?? ''}
+                                                                //                 onChange={e => header.column.setFilterValue(prev => [
+                                                                //                     prev?.[0],
+                                                                //                     e.target.value
+                                                                //                 ])}
+                                                                //                 className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
+                                                                //             />
+                                                                //         </div>
+                                                                //     ) :
+                                                                    /* Filtre par défaut pour les autres colonnes */
+                                                                    (
+                                                                        <input
+                                                                            type={header.column.id === 'montant' ? 'number' : 'text'}
+                                                                            value={header.column.getFilterValue() ?? ''}
+                                                                            onChange={e => header.column.setFilterValue(e.target.value)}
+                                                                            placeholder={`Filtrer...`}
+                                                                            className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white placeholder-gray-400"
+                                                                        />
+                                                                    )
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </th>
                                         ))}
                                     </tr>
