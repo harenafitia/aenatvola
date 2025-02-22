@@ -50,7 +50,6 @@ const Login = () => {
     };
 
     return (
-
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-blue-100">
             <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-md w-full space-y-8 p-8 rounded-xl">
@@ -72,17 +71,17 @@ const Login = () => {
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4">
                             <div className="relative">
-                                <label htmlFor="email" className="sr-only">
-                                    Email
-                                </label>
-                                <Mail
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>
+                                {/*<label htmlFor="email" className="sr-only">*/}
+                                {/*    Email*/}
+                                {/*</label>*/}
+                                {/*<Mail*/}
+                                {/*    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>*/}
                                 <input
                                     id="email"
                                     name="email"
                                     type="email"
                                     required
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
                                     placeholder="Votre email"
                                     value={formData.email}
                                     onChange={handleChange}
@@ -90,17 +89,17 @@ const Login = () => {
                             </div>
 
                             <div className="relative">
-                                <label htmlFor="password" className="sr-only">
-                                    Mot de passe
-                                </label>
-                                <Lock
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>
+                                {/*<label htmlFor="password" className="sr-only">*/}
+                                {/*    Mot de passe*/}
+                                {/*</label>*/}
+                                {/*<Lock*/}
+                                {/*    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>*/}
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
                                     required
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
                                     placeholder="Votre mot de passe"
                                     value={formData.password}
                                     onChange={handleChange}
