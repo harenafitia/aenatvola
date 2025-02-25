@@ -319,86 +319,88 @@ const Parametre = () => {
             {/* Contenu */}
             <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                 {/* Actions avec barre de recherche */}
-                <div className="mb-4 flex flex-wrap items-center gap-2 lg:space-x-4">
-                    {/* Champ de recherche */}
-                    <div className="flex-1 flex-col lg:flex-row lg:items-center gap-4">
-                        <input
+                <div className="container mx-auto max-w-screen-lg lg:max-w-screen-xl xl:max-w-screen-2xl 2xl:max-w-[1620px]">
+                    <div className="mb-4 flex flex-wrap items-center gap-2 lg:space-x-4">
+                        {/* Champ de recherche */}
+                        <div className="flex-1 flex-col lg:flex-row lg:items-center gap-4">
+                            <input
                                 type="text"
                                 placeholder={`Rechercher ...`}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full flex-1 mr-4 px-4 py-2 bg-gray-900 text-white rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Bouton Ajouter */}
+                        <ActionButton
+                            icon={Plus}
+                            label={`Ajouter ${
+                                activeTab === 'annees' ? 'une année' :
+                                    activeTab === 'promotions' ? 'une promotion' :
+                                        'un niveau'
+                            }`}
+                            color="bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                                if (activeTab === 'annees') {
+                                    setIsAddModalOpen(true);
+                                } else if (activeTab === 'promotions') {
+                                    setIsAddPromModalOpen(true);
+                                }
+                            }}
                         />
                     </div>
 
-                    {/* Bouton Ajouter */}
-                    <ActionButton
-                        icon={Plus}
-                        label={`Ajouter ${
-                            activeTab === 'annees' ? 'une année' :
-                                activeTab === 'promotions' ? 'une promotion' :
-                                    'un niveau'
-                        }`}
-                        color="bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                            if (activeTab === 'annees') {
-                                setIsAddModalOpen(true);
-                            } else if (activeTab === 'promotions') {
-                                setIsAddPromModalOpen(true);
+                    {/* Contenu des onglets */}
+                    <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
+                        {(() => {
+                            const { items: filteredItems, totalItems } = getFilteredItems();
+
+                            if (filteredItems.length === 0) {
+                                return (
+                                    <div className="w-full text-center py-8">
+                                        <p className="text-gray-400">
+                                            Aucun résultat trouvé pour "{searchTerm}"
+                                        </p>
+                                    </div>
+                                );
                             }
-                        }}
-                    />
-                </div>
 
-                {/* Contenu des onglets */}
-                <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
-                    {(() => {
-                        const { items: filteredItems, totalItems } = getFilteredItems();
-
-                        if (filteredItems.length === 0) {
                             return (
-                                <div className="w-full text-center py-8">
-                                    <p className="text-gray-400">
-                                        Aucun résultat trouvé pour "{searchTerm}"
-                                    </p>
-                                </div>
+                                <>
+                                    <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
+                                        {(() => {
+                                            switch (activeTab) {
+                                                case 'annees':
+                                                    return filteredItems.map((annee) => (
+                                                        <AnneeCard key={annee.id_anneuniv} annee={annee} />
+                                                    ));
+                                                case 'promotions':
+                                                    return filteredItems.map((promo) => (
+                                                        <PromotionCard key={promo.id_prom} promo={promo} />
+                                                    ));
+                                                case 'niveaux':
+                                                    return filteredItems.map((niveau) => (
+                                                        <NiveauCard key={niveau.id_niveau} niveau={niveau} />
+                                                    ));
+                                                default:
+                                                    return null;
+                                            }
+                                        })()}
+                                    </div>
+                                    <Pagination
+                                        totalItems={totalItems}
+                                        itemsPerPage={itemsPerPage}
+                                        currentPage={currentPage}
+                                        onPageChange={(page) => {
+                                            setCurrentPage(page);
+                                            window.scrollTo(0, 0);
+                                        }}
+                                    />
+                                </>
                             );
-                        }
-
-                        return (
-                            <>
-                                <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
-                                    {(() => {
-                                        switch (activeTab) {
-                                            case 'annees':
-                                                return filteredItems.map((annee) => (
-                                                    <AnneeCard key={annee.id_anneuniv} annee={annee} />
-                                                ));
-                                            case 'promotions':
-                                                return filteredItems.map((promo) => (
-                                                    <PromotionCard key={promo.id_prom} promo={promo} />
-                                                ));
-                                            case 'niveaux':
-                                                return filteredItems.map((niveau) => (
-                                                    <NiveauCard key={niveau.id_niveau} niveau={niveau} />
-                                                ));
-                                            default:
-                                                return null;
-                                        }
-                                    })()}
-                                </div>
-                                <Pagination
-                                    totalItems={totalItems}
-                                    itemsPerPage={itemsPerPage}
-                                    currentPage={currentPage}
-                                    onPageChange={(page) => {
-                                        setCurrentPage(page);
-                                        window.scrollTo(0, 0);
-                                    }}
-                                />
-                            </>
-                        );
-                    })()}
+                        })()}
+                    </div>
                 </div>
             </div>
 
