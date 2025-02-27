@@ -1,14 +1,15 @@
-import React from 'react';
+import React, {Suspense, lazy} from 'react';
 import {Route, Routes, useLocation, Navigate} from 'react-router-dom';
-import Dashboard from './pages/Dashboard.jsx';
-import Membres from './pages/Membres.jsx';
-import Compte from './pages/Comptes.jsx';
-import Depense from './pages/Depense.jsx';
-import Parametre from './pages/Parametre.jsx';
-import Profil from './pages/Profil.jsx';
-import Login from './pages/Login.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import Navbar from './components/Navbar.jsx';
+
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const Membres = lazy(() => import('./pages/Membres.jsx'));
+const Compte = lazy(() => import('./pages/Comptes.jsx'));
+const Depense = lazy(() => import('./pages/Depense.jsx'));
+const Parametre = lazy(() => import('./pages/Parametre.jsx'));
+const Profil = lazy(() => import('./pages/Profil.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
 
 // Valeurs par défaut pour l'utilisateur
 const defaultUser = {
@@ -66,39 +67,41 @@ const App = () => {
                     image: user.photo_profil || defaultUserData.image,
                 }} />
                 <div className="p-4">
-                    <Routes>
-                        <Route path="/login" element={<Login/>}/>
-                        <Route path="/" element={
-                            <PrivateRoute>
-                                <Dashboard/>
-                            </PrivateRoute>
-                        }/>
-                        <Route path="/membres" element={
-                            <PrivateRoute>
-                                <Membres/>
-                            </PrivateRoute>
-                        }/>
-                        <Route path="/compte" element={
-                            <PrivateRoute>
-                                <Compte/>
-                            </PrivateRoute>
-                        }/>
-                        <Route path="/depense" element={
-                            <PrivateRoute>
-                                <Depense/>
-                            </PrivateRoute>
-                        }/>
-                        <Route path="/parametre" element={
-                            <PrivateRoute>
-                                <Parametre/>
-                            </PrivateRoute>
-                        }/>
-                        <Route path="/profil" element={
-                            <PrivateRoute>
-                                <Profil/>
-                            </PrivateRoute>
-                        }/>
-                    </Routes>
+                    <Suspense fallback={<div>Chargement...</div>}>
+                        <Routes>
+                            <Route path="/login" element={<Login/>}/>
+                            <Route path="/" element={
+                                <PrivateRoute>
+                                    <Dashboard/>
+                                </PrivateRoute>
+                            }/>
+                            <Route path="/membres" element={
+                                <PrivateRoute>
+                                    <Membres/>
+                                </PrivateRoute>
+                            }/>
+                            <Route path="/compte" element={
+                                <PrivateRoute>
+                                    <Compte/>
+                                </PrivateRoute>
+                            }/>
+                            <Route path="/depense" element={
+                                <PrivateRoute>
+                                    <Depense/>
+                                </PrivateRoute>
+                            }/>
+                            <Route path="/parametre" element={
+                                <PrivateRoute>
+                                    <Parametre/>
+                                </PrivateRoute>
+                            }/>
+                            <Route path="/profil" element={
+                                <PrivateRoute>
+                                    <Profil/>
+                                </PrivateRoute>
+                            }/>
+                        </Routes>
+                    </Suspense>
                 </div>
             </div>
         </div>
