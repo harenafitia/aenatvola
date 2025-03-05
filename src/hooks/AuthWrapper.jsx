@@ -1,48 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const AuthWrapper = ({ children }) => {
-    const { user, checkSession, refreshSession } = useAuth();
+    const { user, checkSession } = useAuth();
     const location = useLocation();
+    const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        // Rafraîchir la session toutes les 30 minutes
-        const refreshInterval = setInterval(() => {
-            if (checkSession()) {
-                refreshSession();
-            }
-        }, 30 * 60 * 1000); // 30 minutes
+        // Vérifier si la session est valide
+        if (!checkSession()) {
+            setIsChecking(false); // Session invalide, ne pas bloquer la redirection
+        } else {
+            setIsChecking(false);
+        }
+    }, [user]);
 
-        // Rafraîchir la session sur l'activité de l'utilisateur
-        const activities = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-
-        let activityTimeout;
-        const handleActivity = () => {
-            clearTimeout(activityTimeout);
-            activityTimeout = setTimeout(() => {
-                if (checkSession()) {
-                    refreshSession();
-                }
-            }, 1000); // Délai d'une seconde pour éviter trop d'appels
-        };
-
-        activities.forEach(activity => {
-            window.addEventListener(activity, handleActivity);
-        });
-
-        // Nettoyage
-        return () => {
-            clearInterval(refreshInterval);
-            clearTimeout(activityTimeout);
-            activities.forEach(activity => {
-                window.removeEventListener(activity, handleActivity);
-            });
-        };
-    }, [refreshSession, checkSession]);
-
-    if (user === null) {
-        // Ici, on peut afficher un écran de chargement
+    if (isChecking) {
         return <div>Chargement...</div>;
     }
 
