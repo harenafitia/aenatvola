@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react'; // Import des icônes
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react'; // Import des icônes
+import {useAuth} from '../context/AuthContext.jsx';
 import Footer from '../components/Footer.jsx';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth(); // Utilisation du hook useAuth
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -32,14 +35,19 @@ const Login = () => {
             );
 
             if (user) {
-                localStorage.setItem('user', JSON.stringify({
+                const userData = {
                     id: user.id,
                     nom: user.nom,
                     email: user.email,
                     role: user.role,
                     photo_profil: user.photo_profil
-                }));
-                navigate('/');
+                };
+
+                login(userData);
+
+                // Redirection vers la page précédente ou la page d'accueil
+                const from = location.state?.from?.pathname || '/';
+                navigate(from, { replace: true });
             } else {
                 setError('Email ou mot de passe incorrect');
             }

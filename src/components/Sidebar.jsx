@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {useAuth} from "../context/AuthContext.jsx";
 import {
     LayoutDashboard,
     Users,
@@ -14,9 +15,9 @@ import {
 
 const Sidebar = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const {logout} = useAuth();
 
     // Gestion du responsive
     useEffect(() => {
@@ -33,10 +34,7 @@ const Sidebar = () => {
 
     // Fonction de déconnexion
     const handleLogout = () => {
-        // Supprimer les données de l'utilisateur du localStorage
-        localStorage.removeItem('user');
-        // Rediriger vers la page de connexion
-        navigate('/login');
+        logout();
     };
 
 
@@ -131,9 +129,9 @@ const Sidebar = () => {
                 <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
                     <NavLink to="/" icon={LayoutDashboard}>Dashboard</NavLink>
                     <NavLink to="/membres" icon={Users}>Membres</NavLink>
-                    <NavLink to="/compte" icon={Wallet}>Compte</NavLink>
+                    <NavLink to="/comptes" icon={Wallet}>Compte</NavLink>
                     {/*<NavLink to="/depense" icon={Receipt}>Dépense</NavLink>*/}
-                    <NavLink to="/parametre" icon={Settings}>Paramètre</NavLink>
+                    <NavLink to="/parametres" icon={Settings}>Paramètre</NavLink>
                     <NavLink to="/profil" icon={UserCircle}>Profil</NavLink>
                 </nav>
 

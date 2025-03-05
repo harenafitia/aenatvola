@@ -1,110 +1,51 @@
-import React, {Suspense, lazy} from 'react';
-import {Route, Routes, useLocation, Navigate} from 'react-router-dom';
-import Sidebar from './components/Sidebar.jsx';
-import Navbar from './components/Navbar.jsx';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
+import AuthWrapper from './hooks/AuthWrapper.jsx';
 
-const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
-const Membres = lazy(() => import('./pages/Membres.jsx'));
-const Compte = lazy(() => import('./pages/Comptes.jsx'));
-const Depense = lazy(() => import('./pages/Depense.jsx'));
-const Parametre = lazy(() => import('./pages/Parametre.jsx'));
-const Profil = lazy(() => import('./pages/Profil.jsx'));
-const Login = lazy(() => import('./pages/Login.jsx'));
+// Pages publiques
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
 
-// Valeurs par défaut pour l'utilisateur
-const defaultUser = {
-    image: "/default-avatar.jpg", // Image par défaut
-    role: "Utilisateur" // Rôle par défaut
-};
+// Pages protégées
+import Dashboard from './pages/Dashboard.jsx';
+import Comptes from './pages/Comptes.jsx';
+import Depense from './pages/Depense.jsx';
+import Membres from './pages/Membres.jsx';
+import Parametre from './pages/Parametre.jsx';
+import Profil from './pages/Profil.jsx';
 
-// Composant PrivateRoute
-const PrivateRoute = ({ children }) => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-        return <Navigate to="/login" />;
-    }
-    return children;
-};
-
+// Layout
+import Layout from './components/Layout.jsx';
 
 const App = () => {
-    const location = useLocation();
-    const titles = {
-        "/": "Dashboard",
-        "/membres": "Membres",
-        "/compte": "Compte",
-        "/depense": "Dépense",
-        "/parametre": "Paramètre",
-        "/profil": "Profil",
-        "/login": "Login"
-    };
-    const title = titles[location.pathname] || "AENATVola";
-
-    // Vérifier si l'utilisateur est connecté
-    const user = JSON.parse(localStorage.getItem('user')) || defaultUser;
-
-    // Ne pas afficher Sidebar et Navbar sur la page de connexion
-    if (location.pathname === '/login') {
-        return (
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-        );
-    }
-
-    // Assurer qu'on a un utilisateur connecté avant d'afficher le layout principal
-    if (!user) {
-        return <Navigate to="/login" />;
-    }
-
     return (
-        <div className="flex">
-            <Sidebar/>
-            <div className="ml-16 md:ml-64 w-full">
-                <Navbar title={title} user={{
-                    name: user.nom,
-                    image: user.photo_profil || defaultUserData.image,
-                }} />
-                <div className="p-4">
-                    <Suspense fallback={<div>Chargement...</div>}>
-                        <Routes>
-                            <Route path="/login" element={<Login/>}/>
-                            <Route path="/" element={
-                                <PrivateRoute>
-                                    <Dashboard/>
-                                </PrivateRoute>
-                            }/>
-                            <Route path="/membres" element={
-                                <PrivateRoute>
-                                    <Membres/>
-                                </PrivateRoute>
-                            }/>
-                            <Route path="/compte" element={
-                                <PrivateRoute>
-                                    <Compte/>
-                                </PrivateRoute>
-                            }/>
-                            <Route path="/depense" element={
-                                <PrivateRoute>
-                                    <Depense/>
-                                </PrivateRoute>
-                            }/>
-                            <Route path="/parametre" element={
-                                <PrivateRoute>
-                                    <Parametre/>
-                                </PrivateRoute>
-                            }/>
-                            <Route path="/profil" element={
-                                <PrivateRoute>
-                                    <Profil/>
-                                </PrivateRoute>
-                            }/>
-                        </Routes>
-                    </Suspense>
-                </div>
-            </div>
-        </div>
+        <AuthProvider>
+            <Routes>
+                {/* Routes publiques */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+
+                {/* Routes protégées avec Layout */}
+                <Route
+                    element={
+                        <AuthWrapper>
+                            <Layout />
+                        </AuthWrapper>
+                    }
+                >
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/comptes" element={<Comptes />} />
+                    <Route path="/depenses" element={<Depense />} />
+                    <Route path="/membres" element={<Membres />} />
+                    <Route path="/parametres" element={<Parametre />} />
+                    <Route path="/profil" element={<Profil />} />
+                </Route>
+
+                {/* Redirection par défaut */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </AuthProvider>
     );
 };
 
