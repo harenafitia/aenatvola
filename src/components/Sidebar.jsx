@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {useAuth} from "../context/AuthContext.jsx";
+import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
     Wallet,
-    // Receipt,
     Settings,
-    UserCircle,
-    LogOut,
     Menu,
     X
 } from 'lucide-react';
@@ -17,7 +13,6 @@ const Sidebar = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const {logout} = useAuth();
 
     // Gestion du responsive
     useEffect(() => {
@@ -31,12 +26,6 @@ const Sidebar = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    // Fonction de déconnexion
-    const handleLogout = () => {
-        logout();
-    };
-
 
     // Fermer le sidebar sur mobile lors du changement de route
     useEffect(() => {
@@ -130,26 +119,8 @@ const Sidebar = () => {
                     <NavLink to="/" icon={LayoutDashboard}>Dashboard</NavLink>
                     <NavLink to="/membres" icon={Users}>Membres</NavLink>
                     <NavLink to="/comptes" icon={Wallet}>Compte</NavLink>
-                    {/*<NavLink to="/depense" icon={Receipt}>Dépense</NavLink>*/}
                     <NavLink to="/parametres" icon={Settings}>Paramètre</NavLink>
-                    <NavLink to="/profil" icon={UserCircle}>Profil</NavLink>
                 </nav>
-
-                {/* Bouton de déconnexion */}
-                <div className="p-4 border-t border-gray-800">
-                    <button
-                        onClick={handleLogout}
-                        className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200
-                            text-white hover:bg-gray-800
-                            ${isMobile ? 'justify-start' : 'justify-center sm:justify-start'}`}
-                    >
-                        <LogOut className="w-5 h-5 flex-shrink-0"/>
-                        <span className={`ml-3 font-medium whitespace-nowrap
-                            ${isMobile ? 'block' : 'hidden sm:block'}`}>
-                            Déconnexion
-                        </span>
-                    </button>
-                </div>
             </aside>
         </>
     );
