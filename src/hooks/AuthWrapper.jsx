@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import Loading from '../components/Loading.jsx';
 
 const AuthWrapper = ({ children }) => {
     const { user, checkSession } = useAuth();
     const location = useLocation();
     const [isChecking, setIsChecking] = useState(true);
+    const [isLoadingComplete, setIsLoadingComplete] = useState(false);
 
     useEffect(() => {
         // Vérifier si la session est valide
@@ -16,8 +18,8 @@ const AuthWrapper = ({ children }) => {
         }
     }, [user]);
 
-    if (isChecking) {
-        return <div>Chargement...</div>;
+    if (isChecking || !isLoadingComplete) {
+        return <Loading onLoadingComplete={()=> setIsLoadingComplete(true)} />;
     }
 
     if (!user || !checkSession()) {
