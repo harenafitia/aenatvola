@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     // Configuration des cookies
     const cookieOptions = {
         expires: 7, // Expire après 7 jours
-        secure: process.env.NODE_ENV === 'production', // Secure en production
+        secure: import.meta.env.VITE_SECURE_COOKIES === 'true',
         sameSite: 'Lax',
         path: '/'
     };
@@ -35,12 +35,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (userData) => {
-        // Créer un token de session (dans un vrai cas, cela viendrait du serveur)
-        const sessionToken = generateSessionToken();
-
         // Enregistrer les données dans les cookies
         Cookies.set('user', JSON.stringify(userData), cookieOptions);
-        Cookies.set('sessionToken', sessionToken, cookieOptions);
+        Cookies.set('sessionToken', userData.token, cookieOptions);
 
         setUser(userData);
     };
@@ -61,10 +58,6 @@ export const AuthProvider = ({ children }) => {
         return !!(sessionToken && userData && isTokenValid(sessionToken));
     };
 
-    // Fonction pour générer un token de session
-    const generateSessionToken = () => {
-        return Math.random().toString(36).substring(2) + Date.now().toString(36);
-    };
 
     // Fonction pour rafraîchir la session
     const refreshSession = () => {

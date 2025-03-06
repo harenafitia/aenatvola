@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react'; // Import des icônes
-import {useAuth} from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import Footer from '../components/Footer.jsx';
+import axiosInstance from '../axiosConfig'; // Import de l'instance Axios configurée
 
 const Login = () => {
     const navigate = useNavigate();
@@ -27,33 +28,26 @@ const Login = () => {
         setError('');
 
         try {
-            const response = await fetch('/JSON/users.json');
-            const data = await response.json();
+            const response = await axiosInstance.post('/auth/login', formData);
+            const { token } = response.data;
 
-            const user = data.users.find(
-                user => user.email === formData.email && user.password === formData.password
-            );
-
-            if (user) {
-                const userData = {
-                    id: user.id,
-                    nom: user.nom,
-                    email: user.email,
-                    role: user.role,
-                    photo_profil: user.photo_profil
-                };
-
-                login(userData);
-
-                // Redirection vers la page précédente ou la page d'accueil
-                const from = location.state?.from?.pathname || '/';
-                navigate(from, { replace: true });
-            } else {
-                setError('Email ou mot de passe incorrect');
+            if (!token) {
+                throw new Error('Token non reçu');
             }
+
+            const userData = {
+                email: formData.email,
+                token: token,
+            };
+
+            await login(userData); // Attendez que login soit terminé
+
+            // Redirection vers la page précédente ou la page d'accueil
+            const from = location.state?.from?.pathname || '/';
+            navigate(from, { replace: true });
         } catch (error) {
-            setError('Une erreur est survenue. Veuillez réessayer.');
-            console.error('Erreur lors de la connexion:', error);
+            console.error('Erreur de connexion:', error);
+            setError(error.response?.data?.message || 'Email ou mot de passe incorrect');
         }
     };
 
@@ -79,11 +73,6 @@ const Login = () => {
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4">
                             <div className="relative">
-                                {/*<label htmlFor="email" className="sr-only">*/}
-                                {/*    Email*/}
-                                {/*</label>*/}
-                                {/*<Mail*/}
-                                {/*    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>*/}
                                 <input
                                     id="email"
                                     name="email"
@@ -97,11 +86,6 @@ const Login = () => {
                             </div>
 
                             <div className="relative">
-                                {/*<label htmlFor="password" className="sr-only">*/}
-                                {/*    Mot de passe*/}
-                                {/*</label>*/}
-                                {/*<Lock*/}
-                                {/*    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"/>*/}
                                 <input
                                     id="password"
                                     name="password"
@@ -128,7 +112,6 @@ const Login = () => {
                                 type="submit"
                                 className="group relative w-full flex items-center justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-green-800 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
                             >
-                                {/*<LogIn className="h-5 w-5 mr-2"/>*/}
                                 Se connecter
                             </button>
                         </div>
