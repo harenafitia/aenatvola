@@ -8,6 +8,7 @@ const axiosInstance = axios.create({
     // variables d'environnement
     headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
         // Ajoutez d'autres en-têtes ici si nécessaire
     },
 });
