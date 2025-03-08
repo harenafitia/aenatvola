@@ -31,7 +31,8 @@ export default defineConfig({
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
         "connect-src 'self' https://api-aenat.alljacquinot.tech",
-        "img-src 'self' data: blob: https:",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "img-src 'self' data: blob: https:"
       ].join('; ')
     }
   },
