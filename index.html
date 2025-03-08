@@ -5,11 +5,14 @@
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://api-aenat.alljacquinot.tech;
-">
+      default-src 'self';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://api-aenat.alljacquinot.tech;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      img-src 'self' data: blob: https:;
+    ">
     <title>R-AENATVola</title>
   </head>
   <body>
