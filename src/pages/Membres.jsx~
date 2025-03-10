@@ -72,11 +72,7 @@ const Membres = () => {
         {
             header: 'Promotion',
             accessorKey: 'promotion.name_promotion',
-            cell: ({ row }) => {
-                const promotion = row.original.promotion;
-                if (!promotion) return 'N/A';
-                return `${promotion.name_promotion} (${promotion.annee_promotion})`;
-            }
+            cell: ({ row }) => `${row.original.promotion.name_promotion} (${row.original.promotion.annee_promotion})`
         }
     ], []);
 
