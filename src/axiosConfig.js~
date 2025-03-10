@@ -3,7 +3,7 @@ import Cookies from 'js-cookie'; // Ajout de l'import de js-cookie
 
 // Créer une instance d'Axios avec une configuration par défaut
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+    baseURL: import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 10000,
     headers: {
         'Content-Type': 'application/json',

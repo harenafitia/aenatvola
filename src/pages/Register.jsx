@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { AlertCircle, Camera, CheckCircle, User, Mail, Lock } from 'lucide-react';
 import Footer from '../components/Footer.jsx';
+import axiosInstance from '../axiosConfig';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -10,45 +11,132 @@ const Register = () => {
         lastname: '',
         email: '',
         password: '',
-        photo: '',
-        adresse: '',
-        fonction: '',
-        id_groupe: 0
+        photo: null,
     });
-    const [error, setError] = useState('');
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formSuccess, setFormSuccess] = useState(false);
+
+    const validateField = (name, value) => {
+        switch (name) {
+            case 'name':
+            case 'lastname':
+                return value.trim() === '' ? 'Ce champ est requis' : '';
+            case 'email':
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return !emailRegex.test(value) ? 'Email invalide' : '';
+            case 'password':
+                return value.length < 8 ? 'Le mot de passe doit contenir au moins 8 caractères' : '';
+            default:
+                return '';
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setFormData(prevState => ({ ...prevState, [name]: value }));
+
+        // Validation en temps réel
+        const error = validateField(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validation du fichier
+        if (!file.type.startsWith('image/')) {
+            setErrors(prev => ({ ...prev, photo: 'Veuillez sélectionner une image valide' }));
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, photo: 'L\'image ne doit pas dépasser 5MB' }));
+            return;
+        }
+
+        setFormData(prevState => ({ ...prevState, photo: file }));
+        setErrors(prev => ({ ...prev, photo: '' }));
+
+        // Créer l'URL de prévisualisation
+        const previewURL = URL.createObjectURL(file);
+        setPreviewUrl(previewURL);
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        Object.keys(formData).forEach(key => {
+            if (key !== 'photo') { // La photo est optionnelle
+                const error = validateField(key, formData[key]);
+                if (error) newErrors[key] = error;
+            }
+        });
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+
+        if (!validateForm()) return;
+
+        setIsSubmitting(true);
 
         try {
-            // Ici, vous pouvez ajouter la logique pour envoyer les données au serveur
-            console.log('Données du formulaire:', formData);
-            navigate('/login');
+            const formDataToSend = new FormData();
+            formDataToSend.append('name', formData.name.trim());
+            formDataToSend.append('lastname', formData.lastname.trim());
+            formDataToSend.append('email', formData.email.trim());
+            formDataToSend.append('password', formData.password);
+
+            if (formData.photo) {
+                formDataToSend.append('photo', formData.photo);
+            }
+
+            const response = await axiosInstance.post('/auth/signup', formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log('Inscription réussie:', response.data);
+            setFormSuccess(true);
+
+            // Redirection après un court délai pour montrer le message de succès
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         } catch (error) {
-            setError('Une erreur est survenue lors de l\'inscription');
+            const errorMessage = error.response?.data?.message || 'Une erreur est survenue lors de l\'inscription';
+            setErrors(prev => ({ ...prev, form: errorMessage }));
             console.error('Erreur lors de l\'inscription:', error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    // Nettoyage
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 to-blue-100">
             <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full space-y-8 p-8 rounded-xl">
+                <div className="w-full max-w-lg space-y-8 bg-white p-6 md:p-8 rounded-xl shadow-md">
                     <div className="text-center">
                         <img
                             src="/Logo.jpg"
                             alt="Logo"
                             loading="lazy"
-                            className="mx-auto w-24 h-24 object-contain"
+                            className="mx-auto w-20 h-20 object-contain rounded-full shadow-sm"
                         />
                         <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
                             Création de compte
@@ -58,130 +146,197 @@ const Register = () => {
                         </p>
                     </div>
 
-                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                    {formSuccess ? (
+                        <div className="flex flex-col items-center justify-center p-6 bg-green-50 rounded-lg text-green-800">
+                            <CheckCircle className="h-12 w-12 text-green-600 mb-4" />
+                            <p className="text-lg font-semibold">Compte créé avec succès!</p>
+                            <p className="text-sm mt-2">Vous allez être redirigé vers la page de connexion...</p>
+                        </div>
+                    ) : (
+                        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
+                            <div className="space-y-4">
+                                {/* Nom - une ligne complète */}
                                 <div>
-                                    <input
-                                        id="name"
-                                        name="name"
-                                        type="text"
-                                        required
-                                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                        placeholder="Nom"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                    />
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Nom
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <User className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            id="name"
+                                            name="name"
+                                            type="text"
+                                            required
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
+                                            placeholder="Nom"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            onBlur={handleChange}
+                                        />
+                                    </div>
+                                    {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                                 </div>
+
+                                {/* Prénom - une ligne complète */}
                                 <div>
-                                    <input
-                                        id="lastname"
-                                        name="lastname"
-                                        type="text"
-                                        required
-                                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                        placeholder="Prénom"
-                                        value={formData.lastname}
-                                        onChange={handleChange}
-                                    />
+                                    <label htmlFor="lastname" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Prénom
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <User className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            id="lastname"
+                                            name="lastname"
+                                            type="text"
+                                            required
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
+                                            placeholder="Prenom"
+                                            value={formData.lastname}
+                                            onChange={handleChange}
+                                            onBlur={handleChange}
+                                        />
+                                    </div>
+                                    {errors.lastname && <p className="mt-1 text-xs text-red-500">{errors.lastname}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Adresse email
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Mail className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            id="email"
+                                            name="email"
+                                            type="email"
+                                            required
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
+                                            placeholder="exemple@email.com"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            onBlur={handleChange}
+                                        />
+                                    </div>
+                                    {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Mot de passe
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Lock className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            id="password"
+                                            name="password"
+                                            type="password"
+                                            required
+                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
+                                            placeholder="Minimum 8 caractères"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            onBlur={handleChange}
+                                        />
+                                    </div>
+                                    {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="photo" className="block text-sm font-medium text-gray-700">
+                                        Photo de profil (optionnelle)
+                                    </label>
+                                    <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                                        <div className="flex-shrink-0 relative group">
+                                            {previewUrl ? (
+                                                <img
+                                                    src={previewUrl}
+                                                    alt="Aperçu"
+                                                    className="h-20 w-20 object-cover rounded-full border-2 border-gray-200 shadow-sm group-hover:opacity-90 transition-opacity"
+                                                />
+                                            ) : (
+                                                <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center shadow-sm">
+                                                    <Camera className="h-8 w-8 text-gray-400" />
+                                                </div>
+                                            )}
+                                            <label htmlFor="photo" className="absolute inset-0 cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black bg-opacity-20 rounded-full transition-opacity">
+                                                <span className="bg-white text-xs font-medium py-1 px-2 rounded-full shadow-sm">Modifier</span>
+                                            </label>
+                                        </div>
+                                        <div className="flex-grow w-full sm:w-auto">
+                                            <input
+                                                id="photo"
+                                                name="photo"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                            />
+                                            <label
+                                                htmlFor="photo"
+                                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+                                            >
+                                                <Camera className="h-4 w-4 mr-2" />
+                                                Choisir une photo
+                                            </label>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                JPG, PNG ou GIF (max. 5MB)
+                                            </p>
+                                            {errors.photo && <p className="mt-1 text-xs text-red-500">{errors.photo}</p>}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="Adresse email"
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
+                            {errors.form && (
+                                <div className="flex items-center space-x-2 text-red-500 text-sm bg-red-50 p-4 rounded-lg">
+                                    <AlertCircle className="h-5 w-5" />
+                                    <span>{errors.form}</span>
+                                </div>
+                            )}
 
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="Mot de passe"
-                                value={formData.password}
-                                onChange={handleChange}
-                            />
-
-                            <input
-                                id="photo"
-                                name="photo"
-                                type="text"
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="URL de la photo"
-                                value={formData.photo}
-                                onChange={handleChange}
-                            />
-
-                            <input
-                                id="adresse"
-                                name="adresse"
-                                type="text"
-                                required
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="Adresse"
-                                value={formData.adresse}
-                                onChange={handleChange}
-                            />
-
-                            <input
-                                id="fonction"
-                                name="fonction"
-                                type="text"
-                                required
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="Fonction"
-                                value={formData.fonction}
-                                onChange={handleChange}
-                            />
-
-                            <input
-                                id="id_groupe"
-                                name="id_groupe"
-                                type="number"
-                                required
-                                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                                placeholder="ID du groupe"
-                                value={formData.id_groupe}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="flex items-center justify-center space-x-2 text-red-500 text-sm bg-red-50 p-3 rounded-lg">
-                                <AlertCircle className="h-5 w-5"/>
-                                <span>{error}</span>
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className={`group relative w-full flex items-center justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white transition-colors ${
+                                        isSubmitting
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+                                    }`}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Création en cours...
+                                        </>
+                                    ) : 'Créer le compte'}
+                                </button>
                             </div>
-                        )}
 
-                        <div>
-                            <button
-                                type="submit"
-                                className="group relative w-full flex items-center justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-green-800 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                            >
-                                Créer le compte
-                            </button>
-                        </div>
-
-                        <div className="text-center">
-                            <button
-                                type="button"
-                                onClick={() => navigate('/login')}
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
-                            >
-                                Déjà inscrit ? Connectez-vous
-                            </button>
-                        </div>
-                    </form>
+                            <div className="text-center">
+                                <Link
+                                    to="/login"
+                                    className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                                >
+                                    Déjà inscrit ? Connectez-vous
+                                </Link>
+                            </div>
+                        </form>
+                    )}
                 </div>
             </div>
-            <Footer/>
+            <Footer />
         </div>
     );
 };

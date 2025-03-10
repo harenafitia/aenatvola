@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react'; // Import des icônes
 import { useAuth } from '../context/AuthContext.jsx';
 import Footer from '../components/Footer.jsx';
@@ -114,6 +114,16 @@ const Login = () => {
                             >
                                 Se connecter
                             </button>
+                        </div>
+
+                        {/*Lien Page Inscription*/}
+                        <div className="text-center mt-4">
+                            <Link
+                                to="/register"
+                                className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+                            >
+                                Pas encore de compte ? Inscrivez-vous
+                            </Link>
                         </div>
                     </form>
                 </div>
