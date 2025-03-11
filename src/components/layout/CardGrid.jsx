@@ -1,8 +1,8 @@
 import React from 'react';
-import AnneeUnivCard from './cards/AnneeUnivCard.jsx';
-import PromotionCard from './cards/PromotionCard.jsx';
-import NiveauCard from './cards/NiveauxCard.jsx';
-import MentionCard from './cards/MentionCard.jsx';
+import AnneeUnivCard from '../cards/AnneeUnivCard.jsx';
+import PromotionCard from '../cards/PromotionCard.jsx';
+import NiveauCard from '../cards/NiveauxCard.jsx';
+import MentionCard from '../cards/MentionCard.jsx';
 
 const CardGrid = ({
                       items,

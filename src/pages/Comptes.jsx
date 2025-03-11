@@ -13,7 +13,7 @@ import {
     Download
 } from "lucide-react";
 //Import Modal Add Compte
-import AddCompteModal from '../components/AddCompteModal.jsx';
+import AddCompteModal from '../components/modals/AddCompteModal.jsx';
 import DroitsService from '../services/Droits.service.js';
 
 const Comptes = () => {

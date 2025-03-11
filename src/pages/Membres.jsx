@@ -8,7 +8,7 @@ import {
     flexRender,
 } from '@tanstack/react-table';
 import { Plus, ChevronDown, Download, Phone, MapPin, School, Book } from "lucide-react";
-import AddMemberModal from '../components/AddMemberModal.jsx';
+import AddMemberModal from '../components/modals/AddMemberModal.jsx';
 import MembresService from '../services/Membres.service.js';
 
 const Membres = () => {

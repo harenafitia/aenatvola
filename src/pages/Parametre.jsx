@@ -15,16 +15,16 @@ import {
     BookOpen
 } from 'lucide-react';
 //importer le Modal Add Annees Univ
-import AddAnneesUnivModal from '../components/AddAnneesUnivModal.jsx'
+import AddAnneesUnivModal from '../components/modals/AddAnneesUnivModal.jsx'
 //importer le modal Add Promotion
-import AddPromotionModal from '../components/AddPromotionsModal.jsx';
+import AddPromotionModal from '../components/modals/AddPromotionsModal.jsx';
 //importer le modal Edit Promotion
-import EditPromotionModal from '../components/EditPromotionModal.jsx';
+import EditPromotionModal from '../components/modals/EditPromotionModal.jsx';
 import AnneUnivService from '../services/AnneeUniv.service.js';
 import PromotionService from '../services/Promotion.service.js';
 import NiveauxService from '../services/Niveaux.service.js';
 import MentionService from '../services/Mention.service.js';
-import CardGrid from '../components/CardGrid.jsx';
+import CardGrid from '../components/layout/CardGrid.jsx';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');

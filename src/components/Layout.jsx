@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import Sidebar from './Sidebar';
-import Navbar from './Navbar';
+import Sidebar from './layout/Sidebar.jsx';
+import Navbar from './layout/Navbar.jsx';
 
 const Layout = () => {
     const { user, logout } = useAuth();

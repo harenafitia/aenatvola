@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import Loading from '../components/Loading.jsx';
+import Loading from '../components/common/Loading.jsx';
 
 const AuthWrapper = ({ children }) => {
     const { user, checkSession } = useAuth();

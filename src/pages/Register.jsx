@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AlertCircle, Camera, CheckCircle, User, Mail, Lock } from 'lucide-react';
-import Footer from '../components/Footer.jsx';
+import Footer from '../components/layout/Footer.jsx';
 import axiosInstance from '../axiosConfig';
 
 const Register = () => {

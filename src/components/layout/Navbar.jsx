@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Bell, ChevronDown, X, UserCircle, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const Navbar = ({ title, user }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

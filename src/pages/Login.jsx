@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react'; // Import des icônes
 import { useAuth } from '../context/AuthContext.jsx';
-import Footer from '../components/Footer.jsx';
+import Footer from '../components/layout/Footer.jsx';
 import axiosInstance from '../axiosConfig'; // Import de l'instance Axios configurée
 
 const Login = () => {
