@@ -22,6 +22,7 @@ import EditPromotionModal from '../components/EditPromotionModal.jsx';
 import AnneUnivService from '../services/AnneeUniv.service.js';
 import PromotionService from '../services/Promotion.service.js';
 import NiveauxService from '../services/Niveaux.service.js';
+import CardGrid from '../components/CardGrid.jsx';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');
@@ -391,48 +392,16 @@ const Parametre = () => {
 
                     {/* Contenu des onglets */}
                     <div className="flex flex-col min-h-[400px]">
-                        <div className={`${
-                            viewMode === 'grid'
-                                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' // Augmenté gap-6 pour plus d'espacement
-                                : 'flex flex-col space-y-4'
-                        } mb-6`}> {/* Ajout de mb-6 pour l'espacement avec la pagination */}
-                            {(() => {
-                                const { items: filteredItems, totalItems } = getFilteredItems();
-
-                                if (filteredItems.length === 0) {
-                                    return (
-                                        <div className="col-span-full text-center py-8">
-                                            <p className="text-gray-400">
-                                                Aucun résultat trouvé pour "{searchTerm}"
-                                            </p>
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <>
-                                        {(() => {
-                                            switch (activeTab) {
-                                                case 'annees':
-                                                    return filteredItems.map((annee) => (
-                                                        <AnneeCard key={annee.id_anneuniv} annee={annee} />
-                                                    ));
-                                                case 'promotions':
-                                                    return filteredItems.map((promo) => (
-                                                        <PromotionCard key={promo.id_prom} promo={promo} />
-                                                    ));
-                                                case 'niveaux':
-                                                    return filteredItems.map((niveau) => (
-                                                        <NiveauCard key={niveau.id_niveau} niveau={niveau} />
-                                                    ));
-                                                default:
-                                                    return null;
-                                            }
-                                        })()}
-                                    </>
-                                );
-                            })()}
-                        </div>
+                        <CardGrid
+                            items={getFilteredItems().items}
+                            activeTab={activeTab}
+                            viewMode={viewMode}
+                            onEditPromotion={(promo) => {
+                                setSelectedPromotion(promo);
+                                setIsEditModalOpen(true);
+                            }}
+                            searchTerm={searchTerm}
+                        />
 
                         {/* Pagination */}
                         <div className="mt-auto pt-6 border-t border-gray-700">

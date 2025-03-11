@@ -22,6 +22,7 @@ import EditPromotionModal from '../components/EditPromotionModal.jsx';
 import AnneUnivService from '../services/AnneeUniv.service.js';
 import PromotionService from '../services/Promotion.service.js';
 import NiveauxService from '../services/Niveaux.service.js';
+import CardGrid from '../components/CardGrid.jsx';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');
@@ -213,9 +214,9 @@ const Parametre = () => {
 
     const AnneeCard = ({ annee }) => {
         return (
-            <div className={viewMode === 'grid' ? 'w-full' : 'w-full mb-4'}>
+            <div className="h-full">
                 <div className="bg-gray-700 rounded-lg p-4 h-full flex flex-col">
-                    <div className="flex items-start space-x-4 w-full">
+                    <div className="flex items-start space-x-4">
                         <Calendar className="w-6 h-6 text-blue-400 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-medium text-white break-words">{annee.annee}</h3>
@@ -235,11 +236,11 @@ const Parametre = () => {
     };
 
     const PromotionCard = ({ promo }) => (
-        <div className={viewMode === 'grid' ? 'w-full' : 'w-full mb-4'}>
+        <div className="h-full">
             <div className="bg-gray-700 rounded-lg p-4 h-full">
                 <div className="flex flex-col h-full">
-                    <div className="flex items-start justify-between w-full mb-2">
-                        <div className="flex items-center min-w-0 flex-1">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-start min-w-0 flex-1">
                             <GraduationCap className="w-6 h-6 text-blue-400 flex-shrink-0 mr-3" />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-lg font-medium text-white break-words mb-1">{promo.name_prom}</h3>
@@ -262,9 +263,9 @@ const Parametre = () => {
     );
 
     const NiveauCard = ({niveau}) => (
-        <div className={viewMode === 'grid' ? 'w-full' : 'w-full mb-4'}>
+        <div className="h-full">
             <div className="bg-gray-700 rounded-lg p-4 h-full">
-                <div className="flex items-start space-x-4 w-full">
+                <div className="flex items-start space-x-4">
                     <School className="w-6 h-6 text-blue-400 flex-shrink-0"/>
                     <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium text-white break-words">{niveau.name_niveau}</h3>
