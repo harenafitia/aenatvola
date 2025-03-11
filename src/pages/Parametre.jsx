@@ -51,7 +51,7 @@ const Parametre = () => {
         if (totalPages <= 1) return null;
 
         return (
-            <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
+            <div className="w-full flex justify-between items-center flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                 <span className="text-white">
                     Page {currentPage} sur {totalPages}
@@ -212,19 +212,18 @@ const Parametre = () => {
     );
 
     const AnneeCard = ({ annee }) => {
-
         return (
-            <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
-                <div className="bg-gray-700 rounded-lg p-4 h-full">
-                    <div className="flex items-center space-x-4">
+            <div className="h-full">
+                <div className="bg-gray-700 rounded-lg p-4 h-full flex flex-col">
+                    <div className="flex items-start space-x-4">
                         <Calendar className="w-6 h-6 text-blue-400 flex-shrink-0" />
-                        <div className="flex-grow">
-                            <h3 className="text-lg font-medium text-white">{annee.annee}</h3>
-                            <div className="flex items-center space-x-2 mt-2">
-                                {annee.statutuniv === 'en cours' && <Clock className="w-4 h-4 text-green-400" />}
-                                {annee.statutuniv === 'à venir' && <Timer className="w-4 h-4 text-blue-400" />}
-                                {annee.statutuniv === 'terminé' && <Check className="w-4 h-4 text-gray-400" />}
-                                <span className={`px-2 py-1 rounded-full text-xs ${getStatutColor(annee.statutuniv)} text-white`}>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-medium text-white break-words">{annee.annee}</h3>
+                            <div className="flex items-center flex-wrap gap-2 mt-2">
+                                {annee.statutuniv === 'en cours' && <Clock className="w-4 h-4 text-green-400 flex-shrink-0" />}
+                                {annee.statutuniv === 'à venir' && <Timer className="w-4 h-4 text-blue-400 flex-shrink-0" />}
+                                {annee.statutuniv === 'terminé' && <Check className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                                <span className={`px-2 py-1 rounded-full text-xs ${getStatutColor(annee.statutuniv)} text-white inline-block`}>
                                 {annee.statutuniv}
                             </span>
                             </div>
@@ -236,27 +235,26 @@ const Parametre = () => {
     };
 
     const PromotionCard = ({ promo }) => (
-        <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
+        <div className="h-full">
             <div className="bg-gray-700 rounded-lg p-4 h-full">
                 <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-start min-w-0 flex-1">
                             <GraduationCap className="w-6 h-6 text-blue-400 flex-shrink-0 mr-3" />
-                            <button
-                                onClick={() => {
-                                    setSelectedPromotion(promo);
-                                    setIsEditModalOpen(true);
-                                }}
-                                className="p-1.5 hover:bg-gray-600 rounded-full transition-colors ml-auto"
-                            >
-                                <Pencil className="w-4 h-4 text-gray-400 hover:text-white" />
-                            </button>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-medium text-white break-words mb-1">{promo.name_prom}</h3>
+                                <span className="text-sm text-gray-300 break-words">Année : {promo.annee_prom}</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-white mb-1">{promo.name_prom}</h3>
-                        <span className="text-sm text-gray-300">Année : {promo.annee_prom}</span>
+                        <button
+                            onClick={() => {
+                                setSelectedPromotion(promo);
+                                setIsEditModalOpen(true);
+                            }}
+                            className="p-1.5 hover:bg-gray-600 rounded-full transition-colors ml-2 flex-shrink-0"
+                        >
+                            <Pencil className="w-4 h-4 text-gray-400 hover:text-white" />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -264,12 +262,12 @@ const Parametre = () => {
     );
 
     const NiveauCard = ({niveau}) => (
-        <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
+        <div className="h-full">
             <div className="bg-gray-700 rounded-lg p-4 h-full">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-start space-x-4">
                     <School className="w-6 h-6 text-blue-400 flex-shrink-0"/>
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-white">{niveau.name_niveau}</h3>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-medium text-white break-words">{niveau.name_niveau}</h3>
                     </div>
                 </div>
             </div>
@@ -392,23 +390,27 @@ const Parametre = () => {
                     </div>
 
                     {/* Contenu des onglets */}
-                    <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
-                        {(() => {
-                            const { items: filteredItems, totalItems } = getFilteredItems();
+                    <div className="flex flex-col min-h-[400px]">
+                        <div className={`${
+                            viewMode === 'grid'
+                                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' // Augmenté gap-6 pour plus d'espacement
+                                : 'flex flex-col space-y-4'
+                        } mb-6`}> {/* Ajout de mb-6 pour l'espacement avec la pagination */}
+                            {(() => {
+                                const { items: filteredItems, totalItems } = getFilteredItems();
 
-                            if (filteredItems.length === 0) {
+                                if (filteredItems.length === 0) {
+                                    return (
+                                        <div className="col-span-full text-center py-8">
+                                            <p className="text-gray-400">
+                                                Aucun résultat trouvé pour "{searchTerm}"
+                                            </p>
+                                        </div>
+                                    );
+                                }
+
                                 return (
-                                    <div className="w-full text-center py-8">
-                                        <p className="text-gray-400">
-                                            Aucun résultat trouvé pour "{searchTerm}"
-                                        </p>
-                                    </div>
-                                );
-                            }
-
-                            return (
-                                <>
-                                    <div className={`${viewMode === 'grid' ? 'flex flex-wrap -mx-2' : 'space-y-4'}`}>
+                                    <>
                                         {(() => {
                                             switch (activeTab) {
                                                 case 'annees':
@@ -427,19 +429,23 @@ const Parametre = () => {
                                                     return null;
                                             }
                                         })()}
-                                    </div>
-                                    <Pagination
-                                        totalItems={totalItems}
-                                        itemsPerPage={itemsPerPage}
-                                        currentPage={currentPage}
-                                        onPageChange={(page) => {
-                                            setCurrentPage(page);
-                                            window.scrollTo(0, 0);
-                                        }}
-                                    />
-                                </>
-                            );
-                        })()}
+                                    </>
+                                );
+                            })()}
+                        </div>
+
+                        {/* Pagination */}
+                        <div className="mt-auto pt-6 border-t border-gray-700">
+                            <Pagination
+                                totalItems={getFilteredItems().totalItems}
+                                itemsPerPage={itemsPerPage}
+                                currentPage={currentPage}
+                                onPageChange={(page) => {
+                                    setCurrentPage(page);
+                                    window.scrollTo(0, 0);
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
