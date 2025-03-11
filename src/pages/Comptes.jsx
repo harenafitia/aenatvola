@@ -9,16 +9,12 @@ import {
 } from '@tanstack/react-table';
 import {
     Plus,
-    Calendar,
-    DollarSign,
-    ClipboardList,
-    User,
     ChevronDown,
-    ArrowUpCircle,
-    ArrowDownCircle, Download
+    Download
 } from "lucide-react";
 //Import Modal Add Compte
 import AddCompteModal from '../components/AddCompteModal.jsx';
+import DroitsService from '../services/Droits.service.js';
 
 const Comptes = () => {
     const [data, setData] = useState([]);
@@ -31,66 +27,44 @@ const Comptes = () => {
     const [columnFilters, setColumnFilters] = useState([]);
 
     useEffect(() => {
-        fetch('/JSON/budget.json')
-            .then((response) => response.json())
-            .then((data) => setData(data))
-            .catch((error) => console.error('Error fetching data:', error));
+        const loadDroits = async () => {
+            try {
+                const droits = await DroitsService.getAllDroits();
+                setData(droits);
+            } catch (error) {
+                console.error('Erreur lors du chargement des droits:', error);
+                setData([]);
+            }
+        };
+
+        loadDroits();
     }, []);
 
     const columns = useMemo(() => [
         {
             header: 'ID',
-            accessorKey: 'id_budget',
+            accessorKey: 'id_droit',
             enableSorting: true,
         },
         {
-            header: 'Montant',
-            accessorKey: 'montant',
+            header: 'Nom du droit',
+            accessorKey: 'name_droit',
             enableSorting: true,
-            sortingFn: 'alphanumeric',
-            cell: info => {
-                const montant = info.getValue();
-                return (
-                    <span className={`flex items-center ${montant >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {montant.toLocaleString('fr-FR')} Ar
-                    </span>
-                );
-            },
-            filterFn: 'inNumberRange'
         },
         {
-            header: 'Type',
-            accessorKey: 'type_budget',
+            header: 'Statut',
+            accessorKey: 'status_droit',
             enableSorting: true,
             cell: info => {
-                const type = info.getValue();
+                const status = info.getValue();
                 return (
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        type === 'Revenu' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                        {type === 'Revenu' ? <ArrowUpCircle className="w-4 h-4 mr-1" /> : <ArrowDownCircle className="w-4 h-4 mr-1" />}
-                        {type}
+                        {status ? 'Actif' : 'Inactif'}
                     </span>
                 );
-            },
-            filterFn: 'equals'
-        },
-        {
-            header: 'Date',
-            accessorKey: 'date_budget',
-            enableSorting: true,
-            sortingFn: 'datetime',
-            cell: info => new Date(info.getValue()).toLocaleDateString('fr-FR')
-        },
-        {
-            header: 'Description',
-            accessorKey: 'description_budget',
-            enableSorting: true,
-        },
-        {
-            header: 'ID Membre',
-            accessorKey: 'id_membre',
-            enableSorting: true,
+            }
         },
     ], []);
 
@@ -111,44 +85,27 @@ const Comptes = () => {
         onColumnFiltersChange: setColumnFilters,
     });
 
-    const handleAddBudget = async (newBudget) => {
+    const handleAddDroit = async (newDroit) => {
         const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        setData(prevData => [...prevData, { ...newBudget, id_budget: newId }]);
+        setData(prevData => [...prevData, { ...newDroit, id_droit: newId }]);
         setIsModalOpen(false);
     };
 
     // Composant pour la carte mobile
-    const BudgetCard = ({ budget }) => (
+    const DroitCard = ({ droit }) => (
         <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-md">
             <div className="flex items-center mb-3 justify-between">
                 <div className="flex items-center">
-                    <DollarSign className="w-6 h-6 mr-2 text-blue-400" />
-                    <h3 className={`text-lg font-semibold ${budget.montant >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {budget.montant.toLocaleString('fr-FR')} Ar
-                    </h3>
+                    <h3 className="text-lg font-semibold text-white">{droit.name_droit}</h3>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    budget.type_budget === 'Revenu' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    droit.status_droit ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                 }`}>
-                    {budget.type_budget === 'Revenu' ? <ArrowUpCircle className="w-4 h-4 mr-1" /> : <ArrowDownCircle className="w-4 h-4 mr-1" />}
-                    {budget.type_budget}
+                    {droit.status_droit ? 'Actif' : 'Inactif'}
                 </span>
             </div>
-            <div className="space-y-2">
-                <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">
-                        {new Date(budget.date_budget).toLocaleDateString('fr-FR')}
-                    </span>
-                </div>
-                <div className="flex items-center">
-                    <ClipboardList className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">{budget.description_budget}</span>
-                </div>
-                <div className="flex items-center">
-                    <User className="w-5 h-5 mr-2 text-gray-400" />
-                    <span className="text-sm text-gray-300">Membre ID: {budget.id_membre}</span>
-                </div>
+            <div className="text-sm text-gray-400">
+                ID: {droit.id_droit}
             </div>
         </div>
     );
@@ -160,7 +117,7 @@ const Comptes = () => {
                 <div className="space-y-4">
                     {/* Title and Mobile Menu Button */}
                     <div className="flex items-center justify-between">
-                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Budgets</h1>
+                        <h1 className="text-xl sm:text-2xl font-medium text-secondary">Liste des Droits</h1>
                         <button
                             className="lg:hidden p-2 hover:bg-gray-700 rounded-lg"
                             onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -178,7 +135,7 @@ const Comptes = () => {
                                 type="text"
                                 value={globalFilter}
                                 onChange={(e) => setGlobalFilter(e.target.value)}
-                                placeholder="Rechercher..."
+                                placeholder="Rechercher un droit..."
                                 className="w-full px-4 py-2 bg-gray-900 text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -188,13 +145,13 @@ const Comptes = () => {
                             <button
                                 className="flex items-center justify-center px-4 py-2 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors duration-200">
                                 <Download className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Importer</span>
+                                <span className="ml-2 font-regular text-white">Exporter</span>
                             </button>
                             <button
                                 onClick={() => setIsModalOpen(true)}
                                 className="flex items-center justify-center px-4 py-2 bg-green-600 rounded-full hover:bg-green-500 transition-colors duration-200">
                                 <Plus className="w-5 h-5 text-white"/>
-                                <span className="ml-2 font-regular text-white">Ajouter</span>
+                                <span className="ml-2 font-regular text-white">Ajouter un droit</span>
                             </button>
                         </div>
                     </div>
@@ -206,9 +163,9 @@ const Comptes = () => {
                 {/* Mobile Cards View */}
                 <div className="lg:hidden">
                     {table.getRowModel().rows.map((row) => (
-                        <BudgetCard
-                            key={row.original.id_budget}
-                            budget={row.original}
+                        <DroitCard
+                            key={row.original.id_droit}
+                            droit={row.original}
                         />
                     ))}
                 </div>
@@ -227,7 +184,6 @@ const Comptes = () => {
                                                 className="px-3 py-3.5 text-left text-sm font-semibold text-white"
                                             >
                                                 <div className="flex flex-col gap-2">
-                                                    {/* En-tête de colonne avec tri */}
                                                     <div
                                                         className={`flex items-center gap-2 cursor-pointer ${
                                                             header.column.getCanSort() ? 'hover:text-blue-400' : ''
@@ -241,56 +197,14 @@ const Comptes = () => {
                                                         }[header.column.getIsSorted()] ?? null}
                                                     </div>
 
-                                                    {/* Filtres spécifiques pour chaque colonne */}
                                                     {header.column.getCanFilter() && (
-                                                        <div>
-                                                            {/* Filtre pour le type de budget */}
-                                                            {header.column.id === 'type_budget' ? (
-                                                                    <select
-                                                                        value={header.column.getFilterValue() ?? ''}
-                                                                        onChange={e => header.column.setFilterValue(e.target.value)}
-                                                                        className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
-                                                                    >
-                                                                        <option value="">Tous</option>
-                                                                        <option value="Revenu">Revenu</option>
-                                                                        <option value="Dépense">Dépense</option>
-                                                                    </select>
-                                                                ) :
-                                                                /* Filtre pour la date */
-                                                                // header.column.id === 'date_budget' ? (
-                                                                //         <div className="flex gap-1">
-                                                                //             <input
-                                                                //                 type="date"
-                                                                //                 value={header.column.getFilterValue()?.[0] ?? ''}
-                                                                //                 onChange={e => header.column.setFilterValue(prev => [
-                                                                //                     e.target.value,
-                                                                //                     prev?.[1]
-                                                                //                 ])}
-                                                                //                 className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
-                                                                //             />
-                                                                //             <input
-                                                                //                 type="date"
-                                                                //                 value={header.column.getFilterValue()?.[1] ?? ''}
-                                                                //                 onChange={e => header.column.setFilterValue(prev => [
-                                                                //                     prev?.[0],
-                                                                //                     e.target.value
-                                                                //                 ])}
-                                                                //                 className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white"
-                                                                //             />
-                                                                //         </div>
-                                                                //     ) :
-                                                                    /* Filtre par défaut pour les autres colonnes */
-                                                                    (
-                                                                        <input
-                                                                            type={header.column.id === 'montant' ? 'number' : 'text'}
-                                                                            value={header.column.getFilterValue() ?? ''}
-                                                                            onChange={e => header.column.setFilterValue(e.target.value)}
-                                                                            placeholder={`Filtrer...`}
-                                                                            className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white placeholder-gray-400"
-                                                                        />
-                                                                    )
-                                                            }
-                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={header.column.getFilterValue() ?? ''}
+                                                            onChange={e => header.column.setFilterValue(e.target.value)}
+                                                            placeholder={`Filtrer...`}
+                                                            className="w-full px-2 py-1 text-xs bg-gray-700 rounded border border-gray-600 text-white placeholder-gray-400"
+                                                        />
                                                     )}
                                                 </div>
                                             </th>
@@ -371,7 +285,7 @@ const Comptes = () => {
             <AddCompteModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={handleAddBudget}
+                onSubmit={handleAddDroit}
             />
         </div>
     );
