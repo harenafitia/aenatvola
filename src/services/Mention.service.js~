@@ -1,0 +1,21 @@
+class MentionService {
+    static async getAllMentions() {
+        try {
+            // Utiliser l'URL de base de l'API depuis les variables d'environnement
+            const baseURL = import.meta.env.VITE_API_BASE_URL;
+            const response = await fetch(`${baseURL}/mention`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erreur:', error);
+            throw error;
+        }
+    }
+}
+
+export default MentionService;

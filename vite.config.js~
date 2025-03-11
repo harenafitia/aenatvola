@@ -17,14 +17,14 @@ export default defineConfig({
       ].join('; ')
     },
     // Ajout de la configuration du proxy ici
-    proxy: {
-      '/api': {
-        target: 'https://api-aenat.alljacquinot.tech',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    // proxy: {
+    //   '/api': {
+    //     target: 'https://api-aenat.alljacquinot.tech',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path) => path.replace(/^\/api/, '')
+    //   }
+    // }
   },
 
   // Configuration de preview inchangée

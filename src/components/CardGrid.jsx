@@ -2,6 +2,7 @@ import React from 'react';
 import AnneeUnivCard from './cards/AnneeUnivCard.jsx';
 import PromotionCard from './cards/PromotionCard.jsx';
 import NiveauCard from './cards/NiveauxCard.jsx';
+import MentionCard from './cards/MentionCard.jsx';
 
 const CardGrid = ({
                       items,
@@ -33,6 +34,8 @@ const CardGrid = ({
                 />;
             case 'niveaux':
                 return <NiveauCard key={item.id_niveau} niveau={item} viewMode={viewMode} />;
+            case 'mentions':
+                return <MentionCard key={item.id_mention} mention={item} viewMode={viewMode} />;
             default:
                 return null;
         }

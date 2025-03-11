@@ -16,6 +16,14 @@ export default defineConfig({
         "img-src 'self' data: blob: https:",
       ].join('; ')
     },
+
+    proxy: {
+      '/api': {
+        target: 'http://votre-api-url',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    },
     // Ajout de la configuration du proxy ici
     // proxy: {
     //   '/api': {

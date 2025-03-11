@@ -11,7 +11,8 @@ import {
     LayoutGrid,
     List,
     User,
-    Search
+    Search,
+    BookOpen
 } from 'lucide-react';
 //importer le Modal Add Annees Univ
 import AddAnneesUnivModal from '../components/AddAnneesUnivModal.jsx'
@@ -22,6 +23,7 @@ import EditPromotionModal from '../components/EditPromotionModal.jsx';
 import AnneUnivService from '../services/AnneeUniv.service.js';
 import PromotionService from '../services/Promotion.service.js';
 import NiveauxService from '../services/Niveaux.service.js';
+import MentionService from '../services/Mention.service.js';
 import CardGrid from '../components/CardGrid.jsx';
 
 const Parametre = () => {
@@ -29,6 +31,8 @@ const Parametre = () => {
     const [anneesUniv, setAnneesUniv] = useState([]);
     const [promotions, setPromotions] = useState([]);
     const [niveaux, setNiveaux] = useState([]);
+    const [mentions, setMentions] = useState([]);
+
     // Etat pour la vue 'list' ou 'grid'
     const [viewMode, setViewMode] = useState('grid');
     // Nouvel état pour la recherche
@@ -162,6 +166,18 @@ const Parametre = () => {
         };
 
         loadNiveaux();
+
+        // Charger les mentions
+        const loadMentions = async () => {
+            try {
+                const data = await MentionService.getAllMentions();
+                setMentions(data);
+            } catch (error) {
+                console.error('Erreur lors du chargement des mentions:', error);
+            }
+        };
+
+        loadMentions();
     }, []);
 
     const getStatutColor = (statut) => {
@@ -280,26 +296,33 @@ const Parametre = () => {
         const term = searchTerm.toLowerCase();
         let filteredData;
 
-        // Filtrer les données selon l'onglet actif
-        if (activeTab === 'annees') {
-
-            filteredData = anneesUniv.filter(annee => {
-                if (!annee || !annee.annee) return false;
-                return annee.annee.toString().toLowerCase().includes(term);
-            });
-
-        } else if (activeTab === 'promotions') {
-            filteredData = promotions.filter(promo =>
-                promo.name_prom.toLowerCase().includes(term) ||
-                promo.annee_prom.toLowerCase().includes(term)
-            );
-        } else {
-            filteredData = niveaux.filter(niveau =>
-                niveau.name_niveau.toLowerCase().includes(term)
-            );
+        switch (activeTab) {
+            case 'annees':
+                filteredData = anneesUniv.filter(annee => {
+                    if (!annee || !annee.annee) return false;
+                    return annee.annee.toString().toLowerCase().includes(term);
+                });
+                break;
+            case 'promotions':
+                filteredData = promotions.filter(promo =>
+                    promo.name_prom.toLowerCase().includes(term) ||
+                    promo.annee_prom.toLowerCase().includes(term)
+                );
+                break;
+            case 'niveaux':
+                filteredData = niveaux.filter(niveau =>
+                    niveau.name_niveau.toLowerCase().includes(term)
+                );
+                break;
+            case 'mentions':
+                filteredData = mentions.filter(mention =>
+                    mention.name_mention.toLowerCase().includes(term)
+                );
+                break;
+            default:
+                filteredData = [];
         }
 
-        // Calculer l'index de début et de fin pour la pagination
         const indexOfLastItem = currentPage * itemsPerPage;
         const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
@@ -352,6 +375,12 @@ const Parametre = () => {
                         icon={School}
                         isActive={activeTab === 'niveaux'}
                     />
+                    <TabButton
+                        id="mentions"
+                        label="Mentions"
+                        icon={BookOpen}
+                        isActive={activeTab === 'mentions'}
+                    />
                 </div>
             </div>
 
@@ -375,8 +404,9 @@ const Parametre = () => {
                         <ActionButton
                             icon={Plus}
                             label={`Ajouter ${
-                                activeTab === 'annees' ? 'une année' :
+                                activeTab === 'annees' ? 'une année' : 
                                     activeTab === 'promotions' ? 'une promotion' :
+                                        activeTab === 'mentions' ? 'une mention' :
                                         'un niveau'
                             }`}
                             color="bg-green-600 hover:bg-green-700"
