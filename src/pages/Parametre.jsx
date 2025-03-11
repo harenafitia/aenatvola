@@ -21,6 +21,7 @@ import AddPromotionModal from '../components/AddPromotionsModal.jsx';
 import EditPromotionModal from '../components/EditPromotionModal.jsx';
 import AnneUnivService from '../services/AnneeUniv.service.js';
 import PromotionService from '../services/Promotion.service.js';
+import NiveauxService from '../services/Niveaux.service.js';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');
@@ -149,11 +150,17 @@ const Parametre = () => {
 
         loadPromotions();
 
-        // Charger les niveaux
-        fetch('/JSON/niveaux.json')
-            .then(response => response.json())
-            .then(data => setNiveaux(data))
-            .catch(error => console.error('Erreur lors du chargement des niveaux:', error));
+        // Charger les niveaux via le service
+        const loadNiveaux = async () => {
+            try {
+                const data = await NiveauxService.getAllNiveaux();
+                setNiveaux(data);
+            } catch (error) {
+                console.error('Erreur lors du chargement des niveaux:', error);
+            }
+        };
+
+        loadNiveaux();
     }, []);
 
     const getStatutColor = (statut) => {
@@ -205,7 +212,7 @@ const Parametre = () => {
     );
 
     const AnneeCard = ({ annee }) => {
-        console.log('Données de la carte:', annee); // Pour voir les données par carte
+
         return (
             <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
                 <div className="bg-gray-700 rounded-lg p-4 h-full">
@@ -276,12 +283,12 @@ const Parametre = () => {
 
         // Filtrer les données selon l'onglet actif
         if (activeTab === 'annees') {
-            console.log('Données avant filtrage:', anneesUniv); // Pour voir les données avant filtrage
+
             filteredData = anneesUniv.filter(annee => {
                 if (!annee || !annee.annee) return false;
                 return annee.annee.toString().toLowerCase().includes(term);
             });
-            console.log('Données après filtrage:', filteredData); // Pour voir les données après filtrage
+
         } else if (activeTab === 'promotions') {
             filteredData = promotions.filter(promo =>
                 promo.name_prom.toLowerCase().includes(term) ||
