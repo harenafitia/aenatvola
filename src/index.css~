@@ -77,34 +77,3 @@ body {
     color: var(--button-hover-text-color);
 }
 
-/* Layout Styles */
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
-
-#root {
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Scrollbar Styles - Optionnel mais recommandé pour une meilleure UX */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #1a1a1a;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #444;
-}
