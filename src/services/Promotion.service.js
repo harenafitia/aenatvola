@@ -1,14 +1,11 @@
 import axiosInstance from '../axiosConfig';
 
-class AnneUnivService {
-    endpoint = '/anneuniv';
+class PromotionService {
+    endpoint = '/promotion';
 
-    async getAllAnneUniv(params = {}) {
+    async getAllPromotions() {
         try {
-            const response = await axiosInstance.get(this.endpoint, { params });
-            if (!response.data) {
-                throw new Error('Pas de données reçues de l\'API');
-            }
+            const response = await axiosInstance.get(this.endpoint);
             return response.data;
         } catch (error) {
             this.handleError(error);
@@ -16,7 +13,7 @@ class AnneUnivService {
         }
     }
 
-    async getAnneUnivById(id) {
+    async getPromotionById(id) {
         try {
             const response = await axiosInstance.get(`${this.endpoint}/${id}`);
             return response.data;
@@ -37,4 +34,4 @@ class AnneUnivService {
     }
 }
 
-export default new AnneUnivService();
+export default new PromotionService();

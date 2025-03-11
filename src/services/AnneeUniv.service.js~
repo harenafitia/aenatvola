@@ -11,10 +11,21 @@ class AnneUnivService {
      */
     async getAllAnneUniv(params = {}) {
         try {
+            console.log('Appel API vers:', this.endpoint);
             const response = await axiosInstance.get(this.endpoint, { params });
+            console.log('Réponse de l\'API:', response);
+
+            if (!response.data) {
+                throw new Error('Pas de données reçues de l\'API');
+            }
+
             return response.data;
         } catch (error) {
-            this.handleError(error);
+            console.error('Erreur dans getAllAnneUniv:', error);
+            if (error.response) {
+                console.error('Données d\'erreur:', error.response.data);
+                console.error('Status:', error.response.status);
+            }
             throw error;
         }
     }
