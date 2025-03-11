@@ -19,6 +19,7 @@ import AddAnneesUnivModal from '../components/AddAnneesUnivModal.jsx'
 import AddPromotionModal from '../components/AddPromotionsModal.jsx';
 //importer le modal Edit Promotion
 import EditPromotionModal from '../components/EditPromotionModal.jsx';
+import AnneUnivService from '../services/AnneeUniv.service.js';
 
 const Parametre = () => {
     const [activeTab, setActiveTab] = useState('annees');
@@ -39,6 +40,7 @@ const Parametre = () => {
     //Etat pour la pagination en bas des contenus
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(8); // Nombre d'éléments par page
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
     // Fonction Pagination
     const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange }) => {
@@ -102,14 +104,43 @@ const Parametre = () => {
     }, []);
 
     useEffect(() => {
-        // Charger et trier les années universitaires
-        fetch('/JSON/annees_universitaires.json')
-            .then(response => response.json())
-            .then(data => {
-                const sortedData = data.sort((a, b) => b.annee.localeCompare(a.annee));
-                setAnneesUniv(sortedData);
-            })
-            .catch(error => console.error('Erreur lors du chargement des années:', error));
+        // Charger les années universitaires via le service
+        const loadAnneesUniv = async () => {
+            try {
+                console.log('Début du chargement des années universitaires');
+                const data = await AnneUnivService.getAllAnneUniv();
+                console.log('Données brutes de l\'API:', data);
+
+                if (!data || !Array.isArray(data)) {
+                    console.error('Les données reçues ne sont pas un tableau:', data);
+                    return;
+                }
+
+                const sortedData = data.map(annee => {
+                    console.log('Transformation de l\'année:', annee);
+                    return {
+                        id_anneuniv: annee.id_anneuniv,
+                        annee: annee.dateuniv,
+                        statutuniv: annee.statusuniv === 'active' ? 'en cours' : 'terminé'
+                    };
+                });
+                console.log('Données transformées:', sortedData);
+
+                const finalData = sortedData.sort((a, b) => b.annee.localeCompare(a.annee));
+                console.log('Données finales triées:', finalData);
+
+                setAnneesUniv(finalData);
+            } catch (error) {
+                console.error('Erreur détaillée lors du chargement des années:', error);
+                if (error.response) {
+                    console.error('Réponse d\'erreur:', error.response.data);
+                    console.error('Status:', error.response.status);
+                }
+            }
+        };
+
+        // Exécuter le chargement des données
+        loadAnneesUniv();
 
         // Charger et trier les promotions
         fetch('/JSON/promotions.json')
@@ -175,26 +206,29 @@ const Parametre = () => {
         </button>
     );
 
-    const AnneeCard = ({ annee }) => (
-        <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
-            <div className="bg-gray-700 rounded-lg p-4 h-full">
-                <div className="flex items-center space-x-4">
-                    <Calendar className="w-6 h-6 text-blue-400 flex-shrink-0" />
-                    <div className="flex-grow">
-                        <h3 className="text-lg font-medium text-white">{annee.annee}</h3>
-                        <div className="flex items-center space-x-2 mt-2">
-                            {annee.statutuniv === 'en cours' && <Clock className="w-4 h-4 text-green-400" />}
-                            {annee.statutuniv === 'à venir' && <Timer className="w-4 h-4 text-blue-400" />}
-                            {annee.statutuniv === 'terminé' && <Check className="w-4 h-4 text-gray-400" />}
-                            <span className={`px-2 py-1 rounded-full text-xs ${getStatutColor(annee.statutuniv)} text-white`}>
+    const AnneeCard = ({ annee }) => {
+        console.log('Données de la carte:', annee); // Pour voir les données par carte
+        return (
+            <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
+                <div className="bg-gray-700 rounded-lg p-4 h-full">
+                    <div className="flex items-center space-x-4">
+                        <Calendar className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                        <div className="flex-grow">
+                            <h3 className="text-lg font-medium text-white">{annee.annee}</h3>
+                            <div className="flex items-center space-x-2 mt-2">
+                                {annee.statutuniv === 'en cours' && <Clock className="w-4 h-4 text-green-400" />}
+                                {annee.statutuniv === 'à venir' && <Timer className="w-4 h-4 text-blue-400" />}
+                                {annee.statutuniv === 'terminé' && <Check className="w-4 h-4 text-gray-400" />}
+                                <span className={`px-2 py-1 rounded-full text-xs ${getStatutColor(annee.statutuniv)} text-white`}>
                                 {annee.statutuniv}
                             </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const PromotionCard = ({ promo }) => (
         <div className={`${viewMode === 'grid' ? 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2' : 'w-full mb-4'}`}>
@@ -246,9 +280,12 @@ const Parametre = () => {
 
         // Filtrer les données selon l'onglet actif
         if (activeTab === 'annees') {
-            filteredData = anneesUniv.filter(annee =>
-                annee.annee.toLowerCase().includes(term)
-            );
+            console.log('Données avant filtrage:', anneesUniv); // Pour voir les données avant filtrage
+            filteredData = anneesUniv.filter(annee => {
+                if (!annee || !annee.annee) return false;
+                return annee.annee.toString().toLowerCase().includes(term);
+            });
+            console.log('Données après filtrage:', filteredData); // Pour voir les données après filtrage
         } else if (activeTab === 'promotions') {
             filteredData = promotions.filter(promo =>
                 promo.name_prom.toLowerCase().includes(term) ||

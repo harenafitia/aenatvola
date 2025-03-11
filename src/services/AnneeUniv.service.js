@@ -1,0 +1,68 @@
+import axiosInstance from '../axiosConfig';
+
+class AnneUnivService {
+    // URL de base pour les endpoints des années universitaires
+    endpoint = '/anneuniv';
+
+    /**
+     * Récupère toutes les années universitaires
+     * @param {Object} params - Paramètres de requête optionnels (pagination, tri, etc.)
+     * @returns {Promise<Array>} - Liste des années universitaires
+     */
+    async getAllAnneUniv(params = {}) {
+        try {
+            console.log('Appel API vers:', this.endpoint);
+            const response = await axiosInstance.get(this.endpoint, { params });
+            console.log('Réponse de l\'API:', response);
+
+            if (!response.data) {
+                throw new Error('Pas de données reçues de l\'API');
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error('Erreur dans getAllAnneUniv:', error);
+            if (error.response) {
+                console.error('Données d\'erreur:', error.response.data);
+                console.error('Status:', error.response.status);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Récupère une année universitaire par son ID
+     * @param {string|number} id - L'ID de l'année universitaire
+     * @returns {Promise<Object>} - Les données de l'année universitaire
+     */
+    async getAnneUnivById(id) {
+        try {
+            const response = await axiosInstance.get(`${this.endpoint}/${id}`);
+            return response.data;
+        } catch (error) {
+            this.handleError(error);
+            throw error;
+        }
+    }
+
+    /**
+     * Gestion centralisée des erreurs
+     * @param {Error} error - L'erreur à traiter
+     * @private
+     */
+    handleError(error) {
+        console.error('Erreur dans AnneUnivService:', error);
+
+        if (error.response) {
+            console.error('Erreur de réponse:', error.response.data);
+            console.error('Status:', error.response.status);
+        } else if (error.request) {
+            console.error('Erreur de requête:', error.request);
+        } else {
+            console.error('Erreur:', error.message);
+        }
+    }
+}
+
+// Exportation d'une instance unique du service
+export default new AnneUnivService();
