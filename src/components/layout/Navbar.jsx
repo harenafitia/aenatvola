@@ -71,7 +71,7 @@ const Navbar = ({ title, user, className = '' }) => {
 
                                 {/* Menu déroulant */}
                                 {isProfileMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                                    <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                                         <div className="py-1" role="menu" aria-orientation="vertical">
                                             <Link
                                                 to="/profil"
@@ -101,8 +101,8 @@ const Navbar = ({ title, user, className = '' }) => {
 
             {/* Menu mobile */}
             {isMobileMenuOpen && (
-                <div className="absolute top-full left-0 right-0 md:hidden">
-                    <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-800 border-t border-gray-700 shadow-lg">
+                <div className="absolute top-full left-0 right-0 md:hidden bg-gray-800 border-t border-gray-700 shadow-lg">
+                    <div className="px-2 pt-2 pb-3 space-y-1">
                         <button
                             type="button"
                             className="flex items-center w-full px-3 py-2 rounded-md text-white hover:bg-gray-700"
@@ -126,31 +126,6 @@ const Navbar = ({ title, user, className = '' }) => {
                         >
                             <LogOut className="w-6 h-6 mr-3" />
                             <span>Déconnexion</span>
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Menu profil - Position absolute */}
-            {isProfileMenuOpen && (
-                <div className="absolute top-full right-4 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1" role="menu" aria-orientation="vertical">
-                        <Link
-                            to="/profil"
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem"
-                            onClick={() => setIsProfileMenuOpen(false)}
-                        >
-                            <UserCircle className="w-5 h-5 mr-3" />
-                            Profil
-                        </Link>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem"
-                        >
-                            <LogOut className="w-5 h-5 mr-3" />
-                            Déconnexion
                         </button>
                     </div>
                 </div>
