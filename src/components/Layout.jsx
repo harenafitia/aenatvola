@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import Sidebar from './layout/Sidebar.jsx';
@@ -6,25 +6,30 @@ import Navbar from './layout/Navbar.jsx';
 
 const Layout = () => {
     const { user } = useAuth();
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Préparer les données utilisateur pour la Navbar
     const userData = {
         name: user?.name || 'Utilisateur',
-        image: user?.photo || '/default-avatar.png', // Notez le changement de photo à image
+        image: user?.photo || '/default-avatar.png',
     };
 
     return (
         <div className="min-h-screen flex">
             {/* Sidebar - fixed */}
-            <Sidebar className="fixed left-0 top-0 h-screen z-30" />
+            <Sidebar
+                className="fixed left-0 top-0 h-screen z-30"
+                onCollapse={(collapsed) => setIsCollapsed(collapsed)}
+            />
 
             {/* Main Content Container */}
-            <div className="flex-1 flex flex-col ml-20 sm:ml-64 min-h-screen">
+            <div className={`flex-1 flex flex-col transition-all duration-300
+                ${isCollapsed ? 'ml-20' : 'ml-20 sm:ml-64'} min-h-screen`}>
                 {/* Navbar - fixed */}
                 <Navbar
                     title="R-AENATVola"
                     user={userData}
-                    className="fixed top-0 right-0 left-20 sm:left-64 z-20 w-auto"
+                    className={`fixed top-0 right-0 transition-all duration-300
+                        ${isCollapsed ? 'left-20' : 'left-20 sm:left-64'} z-20 w-auto`}
                 />
 
                 {/* Content Area - scrollable */}
