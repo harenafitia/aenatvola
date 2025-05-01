@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie'; //import fonction Coockies
+import Cookies from 'js-cookie';
+import axiosInstance from '../axiosConfig'; // Assurez-vous d'importer axiosInstance
 
 const AuthContext = createContext(null);
 
@@ -9,82 +10,89 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Configuration des cookies
     const cookieOptions = {
-        expires: 7, // Expire après 7 jours
+        expires: 7,
         secure: import.meta.env.VITE_SECURE_COOKIES === 'true',
         sameSite: 'Lax',
         path: '/'
     };
 
-    useEffect(() => {
-        // Vérifier si l'utilisateur est déjà connecté au chargement
-        const storedUser = Cookies.get('user');
-        const sessionToken = Cookies.get('sessionToken');
+    // Nouvelle fonction pour vérifier le token et obtenir les informations utilisateur
+    const verifyTokenAndGetUserInfo = async (token) => {
+        try {
+            const response = await axiosInstance.post('/auth/verify-token', { token });
+            const { decoded } = response.data;
 
-        if (storedUser && sessionToken) {
-            try {
-                const userData = JSON.parse(storedUser);
-                setUser(userData);
-            } catch (error) {
-                console.error('Erreur lors de la lecture des données utilisateur:', error);
-                logout();
-            }
+            // Créer un objet utilisateur avec les informations décodées
+            const userInfo = {
+                name: decoded.username,
+                role: decoded.role.role_name,
+                roleDescription: decoded.role.role_description,
+                userId: decoded.sub,
+                token: token // Garder le token dans l'objet utilisateur
+            };
+
+            return userInfo;
+        } catch (error) {
+            console.error('Erreur lors de la vérification du token:', error);
+            throw error;
         }
-        setIsLoading(false); // Indique que le chargement est terminé
+    };
+
+    useEffect(() => {
+        const initializeAuth = async () => {
+            const sessionToken = Cookies.get('sessionToken');
+
+            if (sessionToken) {
+                try {
+                    const userInfo = await verifyTokenAndGetUserInfo(sessionToken);
+                    setUser(userInfo);
+                    Cookies.set('user', JSON.stringify(userInfo), cookieOptions);
+                } catch (error) {
+                    console.error('Erreur d\'authentification:', error);
+                    logout();
+                }
+            }
+            setIsLoading(false);
+        };
+
+        initializeAuth();
     }, []);
 
-    const login = (userData) => {
-        // Enregistrer les données dans les cookies
-        Cookies.set('user', JSON.stringify(userData), cookieOptions);
-        Cookies.set('sessionToken', userData.token, cookieOptions);
+    const login = async (userData) => {
+        try {
+            // Vérifier le token immédiatement après la connexion
+            const userInfo = await verifyTokenAndGetUserInfo(userData.token);
 
-        setUser(userData);
+            // Sauvegarder les données complètes dans les cookies
+            Cookies.set('user', JSON.stringify(userInfo), cookieOptions);
+            Cookies.set('sessionToken', userData.token, cookieOptions);
+
+            setUser(userInfo);
+        } catch (error) {
+            console.error('Erreur lors de la connexion:', error);
+            throw error;
+        }
     };
 
     const logout = () => {
-        // Supprimer les cookies
         Cookies.remove('user', { path: '/' });
         Cookies.remove('sessionToken', { path: '/' });
-
         setUser(null);
         navigate('/login');
     };
 
     // Fonction pour vérifier si la session est valide
-    const checkSession = () => {
+    const checkSession = async () => {
         const sessionToken = Cookies.get('sessionToken');
-        const userData = Cookies.get('user');
-        return !!(sessionToken && userData && isTokenValid(sessionToken));
-    };
+        if (!sessionToken) return false;
 
-
-    // Fonction pour rafraîchir la session
-    const refreshSession = () => {
-        const userData = Cookies.get('user');
-        if (userData && checkSession()) {
-            // Renouveler le token de session
-            const newSessionToken = generateSessionToken();
-
-            // Réinitialiser les cookies avec de nouvelles dates d'expiration
-            Cookies.set('user', userData, cookieOptions);
-            Cookies.set('sessionToken', newSessionToken, cookieOptions);
-
-            // Mettre à jour l'état utilisateur
-            try {
-                setUser(JSON.parse(userData));
-            } catch (error) {
-                console.error('Erreur lors du rafraîchissement de la session:', error);
-                logout();
-            }
+        try {
+            await verifyTokenAndGetUserInfo(sessionToken);
+            return true;
+        } catch (error) {
+            return false;
         }
-    };
-
-    // Ajoutez une fonction pour vérifier la validité du token
-    const isTokenValid = (token) => {
-        if (!token) return false;
-        // Ajoutez ici votre logique de validation du token si nécessaire
-        return true;
     };
 
     return (
@@ -93,7 +101,7 @@ export const AuthProvider = ({ children }) => {
             login,
             logout,
             checkSession,
-            refreshSession
+            isLoading
         }}>
             {children}
         </AuthContext.Provider>
