@@ -9,6 +9,9 @@ const axiosInstance = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     },
+    // Ajout des options CORS
+    withCredentials: true,
+    crossDomain: true
 });
 
 // Ajouter un intercepteur pour les requêtes

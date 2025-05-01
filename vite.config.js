@@ -11,7 +11,7 @@ export default defineConfig({
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "connect-src 'self' https://api-aenat.alljacquinot.tech",
+        "connect-src 'self' https://api-aenat.hiqaody.me/",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
         "img-src 'self' data: blob: https:",
       ].join('; ')
@@ -43,7 +43,7 @@ export default defineConfig({
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
-        "connect-src 'self' https://api-aenat.alljacquinot.tech",
+        "connect-src 'self' https://api-aenat.hiqaody.me",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
         "img-src 'self' data: blob: https:"
       ].join('; ')

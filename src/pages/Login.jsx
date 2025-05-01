@@ -10,7 +10,7 @@ const Login = () => {
     const location = useLocation();
     const { login } = useAuth(); // Utilisation du hook useAuth
     const [formData, setFormData] = useState({
-        email: '',
+        usernameOrEmail: '',
         password: ''
     });
     const [error, setError] = useState('');
@@ -29,15 +29,15 @@ const Login = () => {
 
         try {
             const response = await axiosInstance.post('/auth/login', formData);
-            const { token } = response.data;
+            const { accessToken } = response.data;
 
-            if (!token) {
+            if (!accessToken) {
                 throw new Error('Token non reçu');
             }
 
             const userData = {
-                email: formData.email,
-                token: token,
+                email: formData.usernameOrEmail,
+                token: accessToken,
             };
 
             await login(userData); // Attendez que login soit terminé
@@ -47,7 +47,13 @@ const Login = () => {
             navigate(from, { replace: true });
         } catch (error) {
             console.error('Erreur de connexion:', error);
-            setError(error.response?.data?.message || 'Email ou mot de passe incorrect');
+            if (error.response) {
+                // Log plus détaillé de la réponse d'erreur
+                console.log('Error response:', error.response.data);
+                setError(error.response.data.message || 'Identifiant ou mot de passe incorrect');
+            } else {
+                setError('Erreur de connexion au serveur');
+            }
         }
     };
 
@@ -74,8 +80,8 @@ const Login = () => {
                         <div className="space-y-4">
                             <div className="relative">
                                 <input
-                                    id="email"
-                                    name="email"
+                                    id="usernameOrEmail"
+                                    name="usernameOrEmail"
                                     type="email"
                                     required
                                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
