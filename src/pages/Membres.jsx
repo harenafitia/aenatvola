@@ -36,6 +36,7 @@ const Membres = () => {
 
     const handleAddMember = async (newMember) => {
         try {
+            // Appel pour ajouter le membre
             const response = await MembresService.createMembre({
                 createMembreDto: {
                     nom_prenom_membre: newMember.nom_prenom_membre,
@@ -50,7 +51,12 @@ const Membres = () => {
                 id_niveau: newMember.id_niveau,
                 date_inscrit: newMember.date_inscrit
             });
-            setData(prevData => [...prevData, response]);
+
+            // Appel pour récupérer les données complètes du membre ajouté
+            const addedMember = await MembresService.getMembreById(response.id_membre);
+
+            // Met à jour la liste des membres avec le nouveau membre
+            setData(prevData => [...prevData, addedMember]);
             setIsModalOpen(false);
         } catch (error) {
             console.error('Erreur lors de l\'ajout du membre:', error);
@@ -172,65 +178,14 @@ const Membres = () => {
         },
     });
 
-    const MobileCard = ({ row }) => {
-        const promotion = row.original.promotion || {};
-        return (
-            <div className="bg-gray-800 p-4 rounded-lg mb-4 shadow-lg">
-                <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-white">
-                        {row.getValue('nom_prenom_membre')}
-                    </h3>
-                    <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
-                        ID: {row.getValue('id_membre')}
-                    </span>
-                </div>
-
-                <div className="space-y-2">
-                    <div className="flex items-center text-gray-300">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        <span className="text-sm">{row.getValue('adresse_membre')}</span>
-                    </div>
-
-                    <div className="flex items-center text-gray-300">
-                        <Phone className="w-4 h-4 mr-2" />
-                        <span className="text-sm">{row.getValue('tel_membre')}</span>
-                    </div>
-
-                    <div className="flex items-center text-gray-300">
-                        <School className="w-4 h-4 mr-2" />
-                        <span className="text-sm">
-                            Promotion: {promotion.name_promotion || 'N/A'}
-                            {promotion.annee_promotion ? `(${promotion.annee_promotion})` : ''}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 mt-3">
-                        <button
-                            onClick={() => handleEditMember(row.original)}
-                            className="text-blue-500 hover:text-blue-700"
-                            aria-label="Modifier"
-                        >
-                            <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => handleDeleteMember(row.original.id_membre)}
-                            className="text-red-500 hover:text-red-700"
-                            aria-label="Supprimer"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     const renderTableOrCards = () => {
         if (isMobileView) {
             return (
                 <div className="mt-4">
                     {table.getRowModel().rows.map(row => (
-                        <MobileCard key={row.id} row={row} />
+                        <div key={row.id} className="bg-gray-800 p-4 rounded-lg mb-4 shadow-lg">
+                            {/* Carte Mobile */}
+                        </div>
                     ))}
                 </div>
             );
