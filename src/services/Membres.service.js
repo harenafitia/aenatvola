@@ -86,7 +86,12 @@ class MembresService {
     async createMembre(data) {
         try {
             const response = await axiosInstance.post('/inscription/withMembre', data);
-            return response.data;
+
+            // Vérifiez si la réponse contient les données attendues
+            if (!response.data || !response.data.membre?.id_membre) {
+                console.warn("La réponse de l'API ne contient pas l'ID du membre créé :", response.data);
+            }
+            return response.data; // Retourne la réponse complète
         } catch (error) {
             this.handleError(error);
             throw error;

@@ -20,17 +20,18 @@ const Membres = () => {
     const [sorting, setSorting] = useState([]);
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
-    useEffect(() => {
-        const loadMembres = async () => {
-            try {
-                const membres = await MembresService.getAllMembres();
-                setData(membres);
-            } catch (error) {
-                console.error('Erreur lors du chargement des membres:', error);
-                setData([]);
-            }
-        };
+    // Charger les membres depuis le backend
+    const loadMembres = async () => {
+        try {
+            const membres = await MembresService.getAllMembres();
+            setData(membres);
+        } catch (error) {
+            console.error('Erreur lors du chargement des membres:', error);
+            setData([]);
+        }
+    };
 
+    useEffect(() => {
         loadMembres();
     }, []);
 
@@ -52,12 +53,16 @@ const Membres = () => {
                 date_inscrit: newMember.date_inscrit
             });
 
-            // Appel pour récupérer les données complètes du membre ajouté
-            const addedMember = await MembresService.getMembreById(response.id_membre);
+            // Vérifiez si l'ID du membre est présent dans la réponse
+            const memberId = response.membre?.id_membre;
+            if (!memberId) {
+                throw new Error("L'ID du membre nouvellement créé est manquant dans la réponse.");
+            }
 
-            // Met à jour la liste des membres avec le nouveau membre
-            setData(prevData => [...prevData, addedMember]);
+            // Recharger tous les membres pour inclure le nouveau
+            await loadMembres();
             setIsModalOpen(false);
+
         } catch (error) {
             console.error('Erreur lors de l\'ajout du membre:', error);
         }
@@ -67,7 +72,8 @@ const Membres = () => {
         if (window.confirm("Êtes-vous sûr de vouloir supprimer ce membre ?")) {
             try {
                 await MembresService.deleteMembreById(id); // Appel à l'endpoint DELETE
-                setData(prevData => prevData.filter(member => member.id_membre !== id));
+                // Recharger tous les membres après suppression
+                await loadMembres();
             } catch (error) {
                 console.error('Erreur lors de la suppression du membre:', error);
             }
