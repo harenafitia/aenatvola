@@ -7,7 +7,7 @@ import {
     getFilteredRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { Plus, ChevronDown, Download, Phone, MapPin, School, Book } from "lucide-react";
+import { Plus, ChevronDown, Download, Phone, MapPin, School, Edit, Trash2 } from "lucide-react";
 import AddMemberModal from '../components/modals/AddMemberModal.jsx';
 import MembresService from '../services/Membres.service.js';
 
@@ -16,6 +16,7 @@ const Membres = () => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingMember, setEditingMember] = useState(null); // Membre en cours d'édition
     const [sorting, setSorting] = useState([]);
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
@@ -26,27 +27,77 @@ const Membres = () => {
                 setData(membres);
             } catch (error) {
                 console.error('Erreur lors du chargement des membres:', error);
-                // Vous pouvez ajouter ici une notification d'erreur pour l'utilisateur
-                setData([]); // Réinitialiser les données en cas d'erreur
+                setData([]);
             }
         };
 
         loadMembres();
     }, []);
 
-    useEffect(() => {
-        fetch('/JSON/membres.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => setData(data))
-            .catch(error => console.error('Error fetching data:', error));
-    }, []);
+    const handleAddMember = async (newMember) => {
+        try {
+            const response = await MembresService.createMembre({
+                createMembreDto: {
+                    nom_prenom_membre: newMember.nom_prenom_membre,
+                    com_origin: newMember.com_origin,
+                    adresse_membre: newMember.adresse_membre,
+                    tel_membre: newMember.tel_membre,
+                    id_promotion: newMember.id_promotion
+                },
+                id_anneuniv: newMember.id_anneuniv,
+                id_parcours: newMember.id_parcours,
+                id_mention: newMember.id_mention,
+                id_niveau: newMember.id_niveau,
+                date_inscrit: newMember.date_inscrit
+            });
+            setData(prevData => [...prevData, response]);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Erreur lors de l\'ajout du membre:', error);
+        }
+    };
 
-    {/*Colonne des Tables*/}
+    const handleDeleteMember = async (id) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce membre ?")) {
+            try {
+                await MembresService.deleteMembreById(id); // Appel à l'endpoint DELETE
+                setData(prevData => prevData.filter(member => member.id_membre !== id));
+            } catch (error) {
+                console.error('Erreur lors de la suppression du membre:', error);
+            }
+        }
+    };
+
+    const handleEditMember = (member) => {
+        setEditingMember(member);
+        setIsModalOpen(true); // Réutilise le modal pour l'édition
+    };
+
+    const handleDownload = () => {
+        const csvContent = [
+            ["ID", "Nom et Prénom", "Commune d'origine", "Adresse", "Téléphone", "Promotion"].join(','),
+            ...data.map(row =>
+                [
+                    row.id_membre,
+                    row.nom_prenom_membre,
+                    row.com_origin,
+                    row.adresse_membre,
+                    row.tel_membre,
+                    row.promotion?.name_promotion || ''
+                ].join(',')
+            )
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'membres.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const columns = useMemo(() => [
         {
             header: 'ID',
@@ -77,10 +128,30 @@ const Membres = () => {
                 if (!promotion) return 'N/A';
                 return `${promotion.name_promotion} (${promotion.annee_promotion})`;
             }
+        },
+        {
+            header: 'Actions',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handleEditMember(row.original)}
+                        className="text-blue-500 hover:text-blue-700"
+                        aria-label="Modifier"
+                    >
+                        <Edit className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() => handleDeleteMember(row.original.id_membre)}
+                        className="text-red-500 hover:text-red-700"
+                        aria-label="Supprimer"
+                    >
+                        <Trash2 className="w-5 h-5" />
+                    </button>
+                </div>
+            )
         }
     ], []);
 
-    {/*Importation du table de Tanstack/Table*/}
     const table = useReactTable({
         data,
         columns,
@@ -101,31 +172,6 @@ const Membres = () => {
         },
     });
 
-    const handleAddMember = (newMember) => {
-        const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        setData(prevData => [...prevData, { ...newMember, id_membre: newId }]);
-        setIsModalOpen(false);
-    };
-
-    const handleDownload = () => {
-        const csvContent = [
-            columns.map(col => col.header).join(','),
-            ...data.map(row =>
-                columns.map(col => row[col.accessorKey]).join(',')
-            )
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'membres.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    {/*CARD pour Mobile*/}
     const MobileCard = ({ row }) => {
         const promotion = row.original.promotion || {};
         return (
@@ -135,41 +181,56 @@ const Membres = () => {
                         {row.getValue('nom_prenom_membre')}
                     </h3>
                     <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
-                    ID: {row.getValue('id_membre')}
-                </span>
+                        ID: {row.getValue('id_membre')}
+                    </span>
                 </div>
 
                 <div className="space-y-2">
                     <div className="flex items-center text-gray-300">
-                        <MapPin className="w-4 h-4 mr-2"/>
+                        <MapPin className="w-4 h-4 mr-2" />
                         <span className="text-sm">{row.getValue('adresse_membre')}</span>
                     </div>
 
                     <div className="flex items-center text-gray-300">
-                        <Phone className="w-4 h-4 mr-2"/>
+                        <Phone className="w-4 h-4 mr-2" />
                         <span className="text-sm">{row.getValue('tel_membre')}</span>
                     </div>
 
                     <div className="flex items-center text-gray-300">
-                        <School className="w-4 h-4 mr-2"/>
+                        <School className="w-4 h-4 mr-2" />
                         <span className="text-sm">
-                        Promotion: {promotion.name_promotion || 'N/A'}
+                            Promotion: {promotion.name_promotion || 'N/A'}
                             {promotion.annee_promotion ? `(${promotion.annee_promotion})` : ''}
-                    </span>
+                        </span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 mt-3">
+                        <button
+                            onClick={() => handleEditMember(row.original)}
+                            className="text-blue-500 hover:text-blue-700"
+                            aria-label="Modifier"
+                        >
+                            <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => handleDeleteMember(row.original.id_membre)}
+                            className="text-red-500 hover:text-red-700"
+                            aria-label="Supprimer"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             </div>
         );
     };
 
-    {/*Choix pour Mobile ou Desktop (Table/Card) */
-    }
     const renderTableOrCards = () => {
         if (isMobileView) {
             return (
                 <div className="mt-4">
                     {table.getRowModel().rows.map(row => (
-                        <MobileCard key={row.id} row={row}/>
+                        <MobileCard key={row.id} row={row} />
                     ))}
                 </div>
             );
@@ -188,7 +249,7 @@ const Membres = () => {
                                     className="px-3 py-3.5 text-left text-sm font-semibold text-white cursor-pointer hover:bg-gray-700"
                                 >
                                     <div className="flex items-center gap-2">
-                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
                                         {header.column.getIsSorted() ? (
                                             header.column.getIsSorted() === 'asc' ? ' 🔼' : ' 🔽'
                                         ) : null}
@@ -252,7 +313,7 @@ const Membres = () => {
                             aria-label="Download data"
                         >
                             <Download className="w-5 h-5 text-white" />
-                            <span className="hidden sm:inline text-white">Telecharger</span>
+                            <span className="hidden sm:inline text-white">Télécharger</span>
                         </button>
                         <button
                             onClick={() => setIsModalOpen(true)}
@@ -267,48 +328,11 @@ const Membres = () => {
 
             {renderTableOrCards()}
 
-            <div className="mt-4 flex justify-between items-center flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="text-white">
-                        Page {table.getState().pagination.pageIndex + 1} sur {table.getPageCount()}
-                    </span>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => table.setPageIndex(0)}
-                        disabled={!table.getCanPreviousPage()}
-                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
-                    >
-                        {'<<'}
-                    </button>
-                    <button
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
-                    >
-                        {'<'}
-                    </button>
-                    <button
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
-                    >
-                        {'>'}
-                    </button>
-                    <button
-                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                        disabled={!table.getCanNextPage()}
-                        className="px-3 py-1 bg-gray-800 text-white rounded-full disabled:opacity-50 hover:bg-gray-700 transition-colors"
-                    >
-                        {'>>'}
-                    </button>
-                </div>
-            </div>
-
             <AddMemberModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleAddMember}
+                member={editingMember}
             />
         </div>
     );

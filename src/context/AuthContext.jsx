@@ -10,97 +10,55 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
-    const cookieOptions = {
-        expires: 7,
-        secure: import.meta.env.VITE_SECURE_COOKIES === 'true',
-        sameSite: 'Lax',
-        path: '/'
-    };
-
-    // Nouvelle fonction pour vérifier le token et obtenir les informations utilisateur
-    const verifyTokenAndGetUserInfo = async (token) => {
+    // Nouvelle fonction pour récupérer les informations utilisateur via /profile
+    const fetchUserProfile = async () => {
         try {
-            const response = await axiosInstance.post('/auth/verify-token', { token });
-            const { decoded } = response.data;
+            const response = await axiosInstance.get('/profile'); // Appel à GET /profile
+            const data = response.data;
 
-            // Créer un objet utilisateur avec les informations décodées
+            // Créez un objet utilisateur simplifié
             const userInfo = {
-                name: decoded.username,
-                role: decoded.role.role_name,
-                roleDescription: decoded.role.role_description,
-                userId: decoded.sub,
-                token: token // Garder le token dans l'objet utilisateur
+                id: data.user_id,
+                username: data.username,
+                email: data.email,
+                photo: data.photo,
+                name: data.membre.nom_prenom_membre,
+                role: data.role.role_name,
+                roleDescription: data.role.role_description,
             };
 
             return userInfo;
         } catch (error) {
-            console.error('Erreur lors de la vérification du token:', error);
+            console.error('Erreur lors de la récupération du profil utilisateur:', error);
             throw error;
         }
     };
 
     useEffect(() => {
         const initializeAuth = async () => {
-            const sessionToken = Cookies.get('sessionToken');
-
-            if (sessionToken) {
-                try {
-                    const userInfo = await verifyTokenAndGetUserInfo(sessionToken);
-                    setUser(userInfo);
-                    Cookies.set('user', JSON.stringify(userInfo), cookieOptions);
-                } catch (error) {
-                    console.error('Erreur d\'authentification:', error);
-                    logout();
-                }
+            try {
+                const userInfo = await fetchUserProfile();
+                setUser(userInfo); // Stockez les informations utilisateur dans le state
+            } catch (error) {
+                logout(); // Si une erreur survient, redirigez vers la page de connexion
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         initializeAuth();
     }, []);
 
-    const login = async (userData) => {
-        try {
-            // Vérifier le token immédiatement après la connexion
-            const userInfo = await verifyTokenAndGetUserInfo(userData.token);
-
-            // Sauvegarder les données complètes dans les cookies
-            Cookies.set('user', JSON.stringify(userInfo), cookieOptions);
-            Cookies.set('sessionToken', userData.token, cookieOptions);
-
-            setUser(userInfo);
-        } catch (error) {
-            console.error('Erreur lors de la connexion:', error);
-            throw error;
-        }
-    };
-
     const logout = () => {
-        Cookies.remove('user', { path: '/' });
         Cookies.remove('sessionToken', { path: '/' });
         setUser(null);
         navigate('/login');
     };
 
-    // Fonction pour vérifier si la session est valide
-    const checkSession = async () => {
-        const sessionToken = Cookies.get('sessionToken');
-        if (!sessionToken) return false;
-
-        try {
-            await verifyTokenAndGetUserInfo(sessionToken);
-            return true;
-        } catch (error) {
-            return false;
-        }
-    };
-
     return (
         <AuthContext.Provider value={{
             user,
-            login,
             logout,
-            checkSession,
             isLoading
         }}>
             {children}

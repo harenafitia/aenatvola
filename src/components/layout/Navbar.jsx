@@ -19,7 +19,7 @@ const Navbar = ({ title, user, className = '' }) => {
             {/* Barre de navigation principale */}
             <div className="text-white shadow-md">
                 <div className="px-4 py-3 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between"> {/* Section principale */}
                         <div className="flex items-center justify-between w-full">
                             {/* Bouton menu mobile */}
                             <button
@@ -42,7 +42,7 @@ const Navbar = ({ title, user, className = '' }) => {
                         </div>
 
                         {/* Section utilisateur - Desktop */}
-                        <div className="hidden md:flex md:items-center md:space-x-4">
+                        <div className="hidden md:flex md:items-center md:space-x-4 justify-end"> {/* Ajout de justify-end */}
                             {/* Icône de notification */}
                             <button
                                 type="button"
@@ -65,12 +65,7 @@ const Navbar = ({ title, user, className = '' }) => {
                                         alt={user.name}
                                         className="w-8 h-8 rounded-full object-cover border-2 border-gray-600"
                                     />
-                                    <div className="flex flex-col items-start">
-                                        <span className="font-medium text-sm">{user.name}</span>
-                                        {user.role && (
-                                            <span className="text-xs text-gray-300">{user.role}</span>
-                                        )}
-                                    </div>
+                                    <span className="font-medium text-sm">{user.name}</span>
                                     <ChevronDown className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${isProfileMenuOpen ? 'transform rotate-180' : ''}`} />
                                 </button>
 
@@ -103,56 +98,6 @@ const Navbar = ({ title, user, className = '' }) => {
                     </div>
                 </div>
             </div>
-
-            {/* Menu mobile avec informations utilisateur */}
-            {isMobileMenuOpen && (
-                <div className="absolute top-full left-0 right-0 md:hidden bg-gray-800 border-t border-gray-700 shadow-lg">
-                    {/* Section profil utilisateur mobile */}
-                    <div className="px-4 py-3 border-b border-gray-700">
-                        <div className="flex items-center space-x-3">
-                            <img
-                                src={user.image}
-                                alt={user.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-gray-600"
-                            />
-                            <div className="flex flex-col">
-                                <span className="text-white font-medium">{user.name}</span>
-                                {user.role && (
-                                    <span className="text-sm text-gray-300">{user.role}</span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Menu mobile actions */}
-                    <div className="px-2 pt-2 pb-3 space-y-1">
-                        <button
-                            type="button"
-                            className="flex items-center w-full px-3 py-2 rounded-md text-white hover:bg-gray-700"
-                        >
-                            <Bell className="w-6 h-6 mr-3" />
-                            <span>Notifications</span>
-                        </button>
-
-                        <Link
-                            to="/profil"
-                            className="flex items-center w-full px-3 py-2 rounded-md text-white hover:bg-gray-700"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <UserCircle className="w-6 h-6 mr-3" />
-                            <span>Profil</span>
-                        </Link>
-
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center w-full px-3 py-2 rounded-md text-white hover:bg-gray-700"
-                        >
-                            <LogOut className="w-6 h-6 mr-3" />
-                            <span>Déconnexion</span>
-                        </button>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 };
@@ -161,7 +106,6 @@ Navbar.propTypes = {
     title: PropTypes.string.isRequired,
     user: PropTypes.shape({
         name: PropTypes.string.isRequired,
-        role: PropTypes.string,
         image: PropTypes.string.isRequired,
     }).isRequired,
     className: PropTypes.string,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import MembresService from '../../services/Membres.service';
 
 const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
     const initialFormData = {
@@ -7,269 +8,381 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
         com_origin: '',
         adresse_membre: '',
         tel_membre: '',
-        id_prom: '',
-        id_mention: '',
+        num_matricule: '',
+        cin_membre: '',
+        id_promotion: '',
+        id_anneuniv: '',
         id_parcours: '',
-        created_at: '',
-        created_by: '',
-        updated_at: '',
-        updated_by: ''
+        id_mention: '',
+        id_niveau: '',
+        date_inscrit: ''
     };
 
     const [formData, setFormData] = useState(initialFormData);
-    const [errors, setErrors] = useState({});
+    const [promotions, setPromotions] = useState([]);
+    const [anneesUniversitaires, setAnneesUniversitaires] = useState([]);
+    const [parcours, setParcours] = useState([]);
+    const [mentions, setMentions] = useState([]);
+    const [niveaux, setNiveaux] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [currentStep, setCurrentStep] = useState(1); // Étape actuelle (1 ou 2)
 
     useEffect(() => {
         if (isOpen) {
-            document.body.style.overflow = 'hidden'; // Désactive le scroll
+            const fetchData = async () => {
+                try {
+                    const [promos, anneeUnivResponse, parcoursList, mentionsList, niveauxResponse] = await Promise.all([
+                        MembresService.getPromotions(),
+                        MembresService.getAnneesUniversitaires(),
+                        MembresService.getParcours(),
+                        MembresService.getMentions(),
+                        MembresService.getNiveaux()
+                    ]);
 
-            const handleKeyDown = (e) => {
-                if (e.key === 'Escape') {
-                    e.preventDefault(); // Empêche la fermeture avec "Escape"
+                    setPromotions(promos);
+                    setAnneesUniversitaires(Array.isArray(anneeUnivResponse) ? anneeUnivResponse : [anneeUnivResponse]);
+                    setParcours(parcoursList);
+                    setMentions(mentionsList);
+                    setNiveaux(Array.isArray(niveauxResponse) ? niveauxResponse : [niveauxResponse]);
+                } catch (error) {
+                    console.error('Erreur lors du chargement des données:', error);
                 }
             };
-
-
-            window.addEventListener('keydown', handleKeyDown);
-
-            return () => {
-                document.body.style.overflow = ''; // Réactive le scroll à la fermeture
-                window.removeEventListener('keydown', handleKeyDown);
-            };
-
-            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            setFormData({
-                ...initialFormData,
-                created_at: currentDateTime,
-                created_by: 'harenafitia',
-                updated_at: currentDateTime,
-                updated_by: 'harenafitia'
-            });
-            setErrors({});
+            fetchData();
         }
     }, [isOpen]);
 
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.nom_prenom_membre.trim()) {
-            newErrors.nom_prenom_membre = 'Le nom et prénom sont requis';
-        } else if (formData.nom_prenom_membre.length < 3) {
-            newErrors.nom_prenom_membre = 'Le nom et prénom doivent contenir au moins 3 caractères';
-        }
-
-        if (!formData.com_origin.trim()) {
-            newErrors.com_origin = 'La commune d\'origine est requise';
-        }
-
-        if (!formData.adresse_membre.trim()) {
-            newErrors.adresse_membre = 'L\'adresse est requise';
-        }
-
-        const phoneRegex = /^(032|033|034|038)\d{7}$/;
-        if (!formData.tel_membre.trim()) {
-            newErrors.tel_membre = 'Le numéro de téléphone est requis';
-        } else if (!phoneRegex.test(formData.tel_membre)) {
-            newErrors.tel_membre = 'Format invalide. Utilisez le format: 03X XX XXX XX';
-        }
-
-        if (!formData.id_prom.trim()) {
-            newErrors.id_prom = 'La promotion est requise';
-        } else if (!/^\d{4}$/.test(formData.id_prom)) {
-            newErrors.id_prom = 'La promotion doit être une année valide (YYYY)';
-        }
-
-        if (!formData.id_mention.trim()) {
-            newErrors.id_mention = 'La mention est requise';
-        }
-
-        if (!formData.id_parcours.trim()) {
-            newErrors.id_parcours = 'Le parcours est requis';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        let formattedValue = value;
-
-        if (name === 'tel_membre') {
-            formattedValue = value.replace(/\D/g, '').slice(0, 10);
-        }
-
         setFormData(prev => ({
             ...prev,
-            [name]: formattedValue,
-            updated_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            updated_by: 'harenafitia'
+            [name]: value
         }));
+    };
 
-        if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
+    const validateStep = () => {
+        const errors = {};
+        if (currentStep === 1) {
+            if (!formData.nom_prenom_membre.trim()) errors.nom_prenom_membre = 'Nom et prénom requis';
+            if (!formData.com_origin.trim()) errors.com_origin = 'Commune d\'origine requise';
+            if (!formData.adresse_membre.trim()) errors.adresse_membre = 'Adresse requise';
+            if (!formData.tel_membre.trim()) errors.tel_membre = 'Téléphone requis';
+            if (!formData.num_matricule.trim()) errors.num_matricule = 'Numéro matricule requis';
+            if (!formData.cin_membre.trim()) errors.cin_membre = 'CIN requis';
+        } else if (currentStep === 2) {
+            if (!formData.id_promotion) errors.id_promotion = 'Promotion requise';
+            if (!formData.id_anneuniv) errors.id_anneuniv = 'Année universitaire requise';
+            if (!formData.id_parcours) errors.id_parcours = 'Parcours requis';
+            if (!formData.id_mention) errors.id_mention = 'Mention requise';
+            if (!formData.id_niveau) errors.id_niveau = 'Niveau requis';
+            if (!formData.date_inscrit) errors.date_inscrit = 'Date d\'inscription requise';
         }
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleNext = () => {
+        if (validateStep()) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        setCurrentStep(currentStep - 1);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validateForm()) {
-            setIsSubmitting(true);
-            try {
-                await onSubmit(formData);
-                setFormData(initialFormData);
-                setErrors({});
-                onClose();
-            } catch (error) {
-                console.error('Error submitting form:', error);
-                setErrors(prev => ({
-                    ...prev,
-                    submit: 'Une erreur est survenue lors de la soumission du formulaire'
-                }));
-            } finally {
-                setIsSubmitting(false);
-            }
+        if (!validateStep()) return;
+        setIsSubmitting(true);
+        try {
+            await onSubmit(formData);
+            setFormData(initialFormData);
+            onClose();
+        } catch (error) {
+            console.error('Erreur lors de la soumission:', error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     if (!isOpen) return null;
 
-    const formFields = [
-        {
-            name: 'nom_prenom_membre',
-            label: 'Nom et Prénom',
-            type: 'text',
-            placeholder: 'Ex: RAKOTO Jean'
-        },
-        {
-            name: 'com_origin',
-            label: 'Commune d\'origine',
-            type: 'text',
-            placeholder: 'Ex: Antananarivo'
-        },
-        {
-            name: 'adresse_membre',
-            label: 'Adresse',
-            type: 'text',
-            placeholder: 'Ex: Lot IVT 76 Ter Ambohimanarina',
-            fullWidth: true
-        },
-        {
-            name: 'tel_membre',
-            label: 'Téléphone',
-            type: 'tel',
-            placeholder: 'Ex: 034XXXXXXX'
-        },
-        {
-            name: 'id_prom',
-            label: 'Promotion',
-            type: 'text',
-            placeholder: 'Ex: 2024'
-        },
-        {
-            name: 'id_mention',
-            label: 'Mention',
-            type: 'text',
-            placeholder: 'Ex: Génie Logiciel'
-        },
-        {
-            name: 'id_parcours',
-            label: 'Parcours',
-            type: 'text',
-            placeholder: 'Ex: Master'
-        }
-    ];
-
     return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-start md:items-center justify-center z-50 p-2 md:p-4 overflow-y-auto"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
-            <div className="bg-gray-800 rounded-lg w-full max-w-xs md:max-w-3xl my-4 md:my-0">
-                {/* Header */}
-                <div className="sticky top-0 bg-gray-800 rounded-t-lg border-b border-gray-700 p-4 md:p-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-lg md:text-xl font-semibold text-white">Ajouter un nouveau membre</h2>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-white transition-colors rounded-full p-1 hover:bg-gray-700"
-                            aria-label="Fermer"
-                        >
-                            <X className="w-5 h-5 md:w-6 md:h-6" />
-                        </button>
-                    </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50">
+            <div className="bg-gray-800 rounded-lg w-full max-w-3xl mx-4 my-8">
+                <div className="flex justify-between items-center p-4 border-b border-gray-700">
+                    <h2 className="text-lg font-semibold text-white">Ajouter un membre</h2>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-white transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
-
-                {/* Form Content */}
-                <div className="p-4 md:p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            {formFields.map((field) => (
-                                <div
-                                    key={field.name}
-                                    className={`space-y-1 ${
-                                        field.fullWidth ? 'col-span-1 md:col-span-2' : ''
-                                    }`}
-                                >
-                                    <label className="block text-sm font-medium text-gray-300">
-                                        {field.label}
-                                        <span className="text-red-500 ml-1">*</span>
-                                    </label>
-                                    <input
-                                        type={field.type}
-                                        name={field.name}
-                                        value={formData[field.name]}
-                                        onChange={handleChange}
-                                        placeholder={field.placeholder}
-                                        className={`mt-1 w-full rounded-md bg-gray-700 border ${
-                                            errors[field.name] ? 'border-red-500' : 'border-gray-600'
-                                        } text-white px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                                        required
-                                    />
-                                    {errors[field.name] && (
-                                        <p className="text-xs md:text-sm text-red-500">{errors[field.name]}</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        {errors.submit && (
-                            <div className="p-3 bg-red-500 bg-opacity-10 border border-red-500 rounded-md">
-                                <p className="text-xs md:text-sm text-red-500">{errors.submit}</p>
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                    {/* Étape 1 */}
+                    {currentStep === 1 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Nom et Prénom */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Nom et Prénom
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="nom_prenom_membre"
+                                    value={formData.nom_prenom_membre}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.nom_prenom_membre ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.nom_prenom_membre && <p className="text-red-500 text-sm">{errors.nom_prenom_membre}</p>}
                             </div>
-                        )}
 
-                        {/* Footer */}
-                        <div className="flex flex-col-reverse md:flex-row md:justify-end gap-3 md:space-x-3 pt-4 border-t border-gray-700">
+                            {/* Commune d'origine */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Commune d'origine
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="com_origin"
+                                    value={formData.com_origin}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.com_origin ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.com_origin && <p className="text-red-500 text-sm">{errors.com_origin}</p>}
+                            </div>
+
+                            {/* Adresse */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Adresse
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="adresse_membre"
+                                    value={formData.adresse_membre}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.adresse_membre ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.adresse_membre && <p className="text-red-500 text-sm">{errors.adresse_membre}</p>}
+                            </div>
+
+                            {/* Téléphone */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Téléphone
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="tel_membre"
+                                    value={formData.tel_membre}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.tel_membre ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.tel_membre && <p className="text-red-500 text-sm">{errors.tel_membre}</p>}
+                            </div>
+
+                            {/* Numéro Matricule */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Numéro Matricule
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="num_matricule"
+                                    value={formData.num_matricule}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.num_matricule ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.num_matricule && <p className="text-red-500 text-sm">{errors.num_matricule}</p>}
+                            </div>
+
+                            {/* CIN */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    CIN
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="cin_membre"
+                                    value={formData.cin_membre}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.cin_membre ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.cin_membre && <p className="text-red-500 text-sm">{errors.cin_membre}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Étape 2 */}
+                    {currentStep === 2 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Promotion */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Promotion
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="id_promotion"
+                                    value={formData.id_promotion}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.id_promotion ? 'border-red-500' : 'border-gray-600'}`}
+                                >
+                                    <option value="">Sélectionnez une promotion</option>
+                                    {promotions.map(promo => (
+                                        <option key={promo.id_promotion} value={promo.id_promotion}>
+                                            {promo.name_promotion}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.id_promotion && <p className="text-red-500 text-sm">{errors.id_promotion}</p>}
+                            </div>
+
+                            {/* Année universitaire */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Année universitaire
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="id_anneuniv"
+                                    value={formData.id_anneuniv}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.id_anneuniv ? 'border-red-500' : 'border-gray-600'}`}
+                                >
+                                    <option value="">Sélectionnez une année</option>
+                                    {anneesUniversitaires.map(annee => (
+                                        <option key={annee.id_anneuniv} value={annee.id_anneuniv}>
+                                            {annee.dateuniv}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.id_anneuniv && <p className="text-red-500 text-sm">{errors.id_anneuniv}</p>}
+                            </div>
+
+                            {/* Parcours */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Parcours
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="id_parcours"
+                                    value={formData.id_parcours}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.id_parcours ? 'border-red-500' : 'border-gray-600'}`}
+                                >
+                                    <option value="">Sélectionnez un parcours</option>
+                                    {parcours.map(parcour => (
+                                        <option key={parcour.id_parcours} value={parcour.id_parcours}>
+                                            {parcour.name_parcours}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.id_parcours && <p className="text-red-500 text-sm">{errors.id_parcours}</p>}
+                            </div>
+
+                            {/* Mention */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Mention
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="id_mention"
+                                    value={formData.id_mention}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.id_mention ? 'border-red-500' : 'border-gray-600'}`}
+                                >
+                                    <option value="">Sélectionnez une mention</option>
+                                    {mentions.map(mention => (
+                                        <option key={mention.id_mention} value={mention.id_mention}>
+                                            {mention.name_mention}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.id_mention && <p className="text-red-500 text-sm">{errors.id_mention}</p>}
+                            </div>
+
+                            {/* Niveau */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Niveau
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="id_niveau"
+                                    value={formData.id_niveau}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.id_niveau ? 'border-red-500' : 'border-gray-600'}`}
+                                >
+                                    <option value="">Sélectionnez un niveau</option>
+                                    {niveaux.map(niveau => (
+                                        <option key={niveau.id_niveau} value={niveau.id_niveau}>
+                                            {niveau.name_niveau}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.id_niveau && <p className="text-red-500 text-sm">{errors.id_niveau}</p>}
+                            </div>
+
+                            {/* Date d'inscription */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300">
+                                    Date d'inscription
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    name="date_inscrit"
+                                    value={formData.date_inscrit}
+                                    onChange={handleChange}
+                                    className={`w-full p-2 bg-gray-700 rounded-md text-white ${errors.date_inscrit ? 'border-red-500' : 'border-gray-600'}`}
+                                />
+                                {errors.date_inscrit && <p className="text-red-500 text-sm">{errors.date_inscrit}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-between mt-4">
+                        {currentStep > 1 && (
                             <button
                                 type="button"
-                                onClick={onClose}
-                                className="w-full md:w-auto px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition-colors disabled:opacity-50 text-sm md:text-base"
-                                disabled={isSubmitting}
+                                onClick={handlePrevious}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition-colors"
                             >
-                                Annuler
+                                Précédent
                             </button>
+                        )}
+                        {currentStep < 2 ? (
+                            <button
+                                type="button"
+                                onClick={handleNext}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+                            >
+                                Suivant
+                            </button>
+                        ) : (
                             <button
                                 type="submit"
-                                className="w-full md:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-                                        Traitement...
-                                    </>
-                                ) : (
-                                    'Ajouter'
-                                )}
+                                {isSubmitting ? 'En cours...' : 'Ajouter'}
                             </button>
-                        </div>
-                    </form>
-                </div>
+                        )}
+                    </div>
+                </form>
             </div>
         </div>
     );
